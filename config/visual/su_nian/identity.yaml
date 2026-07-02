@@ -1,0 +1,75 @@
+character_id: "su_nian"
+visual_hash: "su_nian_v1"
+
+face:
+  face_shape: "oval_gentle"
+  eye_shape: "almond_dreamy"
+  eye_color: "soft_brown"
+  eye_detail: "柔棕色瞳仁，眼神温柔似水带一点梦幻感，总是像在想着什么美好的事，睫毛细长自然"
+  eyebrow: "soft_arch_natural"
+  nose: "straight_delicate"
+  nose_detail: "小巧精致，侧面线条柔和，与整体温婉气质高度统一"
+  mouth: "soft_petal_pink"
+  mouth_detail: "唇形柔和，唇色如花瓣般淡粉，嘴角自然微微上翘，笑起来像春风拂面"
+  skin: "fair_warm_porcelain"
+  face_overall: "温婉的鹅蛋脸，面部线条极其柔和，像古典仕女画中走出来的人物，眼神总带一层薄薄的雾气（轻微近视但不戴眼镜的效果），给人书卷气和诗意"
+
+  distinctive_marks:
+    - "眼神带'雾感'——像永远隔着一层薄纱看世界（轻微近视效果）"
+    - "右侧鼻翼旁一颗极浅的小痣"
+    - "不笑时有种淡淡的忧愁美（古典病美人气质）"
+
+hair:
+  base_color: "dark_brown_warm"
+  base_style: "long_wavy_hip_length"
+  base_detail: "深棕色长卷发及臀，发量大而蓬松，自然大波浪，偏分（左分），发尾层次丰富，经常用一根木质发簪松松挽起或半扎，散发时像瀑布披在身后"
+  variants:
+    - id: "hair_default"
+      name: "披散长卷发"
+      description: "深棕色大波浪自然披散及臀，左侧偏分，浪漫飘逸"
+    - id: "hair_side_braid"
+      name: "侧编发"
+      description: "从左侧编一条松散的鱼骨辫垂在胸前，其余披散，田园文艺感"
+    - id: "hair_wooden_pin"
+      name: "发簪挽发"
+      description: "用一根胡桃木发簪把全部头发松松挽成低发髻，温婉古典"
+
+body:
+  height_cm: 160
+  build: "slender_soft_literary"
+  body_detail: "纤瘦柔软的身形，不是运动型而是书斋型，肩膀窄而圆，整体线条柔和，像是长期在室内读书写字养出的温润体态"
+  bust: "moderate_small"
+  waist: "slender_soft"
+  hips: "gentle_feminine"
+
+  distinctive_marks:
+    - "右手中指有长期握笔留下的小茧子"
+    - "举手投足都缓慢轻柔，像怕惊扰了什么"
+
+aura:
+  primary: "温柔诗意"
+  secondary: "多愁善感"
+  overall: "捧着一本诗集坐在窗边的少女，永远温柔永远带着一丝淡淡的忧愁，说话像在写散文，是最治愈的倾听者"
+  gaze: "永远带着一层雾气的眼神，不是涣散而是'在看你又像在看更远的地方'的诗意凝视"
+  voice_tone: "轻柔绵软，语速不快，偶尔停顿像在斟酌用词，声音有安抚人心的魔力"
+
+style:
+  palette: ["cream", "lavender", "dusty_blue", "sage_green", "blush_pink", "ivory", "oatmeal"]
+  avoid: ["neon", "leather", "heavy_patterns", "aggressive_silhouettes"]
+  fabrics: ["cotton", "linen", "chiffon", "fine_knit", "rayon", "muslin"]
+  vibe: "田园文艺风，碎花裙爱好者，喜欢一切柔软飘逸的面料，复古小皮鞋和帆布鞋换着穿，草帽和帆布袋是标配"
+
+accessories:
+  default:
+    hair: "胡桃木发簪或细丝带"
+    necklace: "极细金链配迷你书本吊坠"
+    bag: "帆布单肩包，里面永远有一本书"
+    bookmark: "自制的干花书签经常从书中露出来"
+
+camera_style:
+  preference: "occasional_artistic"
+  selfie_angle: "eye_level_or_slightly_above"
+  selfie_distance: "medium"
+  favorite_poses: ["pose_004", "pose_013", "pose_016", "pose_029", "pose_032"]
+  filter_tendency: ["warm_vintage", "slight_fade", "film_grain", "soft_light"]
+  selfie_frequency: 0.2

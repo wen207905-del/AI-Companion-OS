@@ -1,0 +1,21 @@
+# 写作风格参考清单
+# 后续追加：把 .md / .txt 放进对应 scope 的 extras/ 目录即可自动加载
+# 完整原文放 source/ 目录
+
+scopes:
+  private:
+    title: 私聊 · CG 长篇 + 微信 1v1
+    max_chars: 14000
+    guides:
+      - private/cg_novel_style_guide.md
+      - shared/wechat_realistic_chat_guide.md
+    extras_dir: private/extras
+
+  group:
+    title: 群聊 · 微信连发 + 互动游戏
+    max_chars: 12000
+    guides:
+      - group/group_chat_style_guide.md
+      - shared/wechat_realistic_chat_guide.md
+      - group/group_interactive_games_guide.md
+    extras_dir: group/extras

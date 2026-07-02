@@ -1,0 +1,75 @@
+character_id: "hua_li"
+visual_hash: "hua_li_v1"
+
+face:
+  face_shape: "round_chubby_cute"
+  eye_shape: "round_droopy_puppy"
+  eye_color: "chestnut_brown"
+  eye_detail: "栗色大圆眼，眼尾微微下垂（狗狗眼），眼神永远无辜可怜，睫毛长而自然下垂，看起来总是像在撒娇或求抱抱"
+  eyebrow: "soft_thick_straight"
+  nose: "small_round_chubby"
+  nose_detail: "小巧微塌，鼻头圆圆的像小面团，鼻梁不高但不影响可爱度"
+  mouth: "small_plump_pout"
+  mouth_detail: "小小的嘟嘟唇，下唇比上唇厚，自然状态下微微张开，嘴角下挂呈天然委屈状，但笑起来甜度爆表"
+  skin: "fair_milky_baby"
+  face_overall: "圆嘟嘟的娃娃脸，满满的胶原蛋白，苹果肌鼓得像两个小包子，下巴短而圆润，是那种让人看一眼就想保护的类型，永远看起来比实际年龄小"
+
+  distinctive_marks:
+    - "天然下垂的狗狗眼（不笑时看起来永远像在委屈）"
+    - "圆嘟嘟的脸颊让人忍不住想捏"
+    - "左脸颊有一个极浅的小梨涡（仅笑时出现）"
+
+hair:
+  base_color: "light_chestnut_warm"
+  base_style: "bob_curly_fluffy"
+  base_detail: "浅栗色自然卷短发Bob，长度齐肩，发质柔软蓬松自带空气卷，刘海是眉上短刘海（露出眉毛），整体像小绵羊一样毛茸茸软乎乎"
+  variants:
+    - id: "hair_default"
+      name: "毛茸茸卷Bob"
+      description: "浅栗色自然卷Bob，眉上短刘海，蓬松柔软像小羊羔"
+    - id: "hair_double_buns"
+      name: "双丸子头"
+      description: "两边各扎一个小丸子，用草莓发圈固定，刘海依然是眉上短刘海"
+    - id: "hair_half_pigtails"
+      name: "双低小辫子"
+      description: "左右各扎一个低低的小短辫，用丝带蝴蝶结装饰，甜美乖巧"
+
+body:
+  height_cm: 148
+  build: "tiny_chubby_soft"
+  body_detail: "迷你软萌型，身高148cm是所有角色中最矮的，骨架极小，但身上有点婴儿肥的软肉感（不是胖，是软），手脚都很小，像是等比缩小的洋娃娃"
+  bust: "small_flat"
+  waist: "soft_slight"
+  hips: "narrow_childlike"
+
+  distinctive_marks:
+    - "身高148cm，走到哪都被当作小学生"
+    - "手脚都很小（鞋子穿34码）"
+    - "走路时有点内八"
+
+aura:
+  primary: "软萌治愈"
+  secondary: "天真黏人"
+  overall: "小动物系女孩，像一只毛茸茸的小兔子或小仓鼠，喜欢黏在人身边，声音软糯，是所有人的'团宠'和'妹妹'担当"
+  gaze: "下垂的狗狗眼永远水汪汪地看着你，即使什么都没做也像在撒娇"
+  voice_tone: "软糯的萝莉音，说话尾音总是拖长，喜欢用叠词，急了会带哭腔"
+
+style:
+  palette: ["baby_pink", "cream", "mint_green", "lavender", "white", "peach", "lemon_yellow"]
+  avoid: ["black_heavy", "dark_colors", "sexy_cuts", "mature_silhouettes", "high_heels"]
+  fabrics: ["cotton", "fleece", "tulle", "corduroy", "soft_knit"]
+  vibe: "甜度超标的可爱风，蓬蓬裙和娃娃衫是本体，蝴蝶结越多越好，毛绒元素不能少，永远穿着平底鞋（玛丽珍/芭蕾鞋/小白鞋），冬天裹得像糯米团子"
+
+accessories:
+  default:
+    hair: "永远有发夹或蝴蝶结（草莓/兔子/花朵造型轮流戴）"
+    bag: "动物造型小背包（兔子/小熊形状）"
+    socks: "花边短袜，经常是不同颜色的可爱印花"
+
+camera_style:
+  preference: "loves_selfie"
+  selfie_angle: "high_angle_extreme"
+  selfie_distance: "close_face"
+  favorite_poses: ["pose_015", "pose_022", "pose_027", "pose_028", "pose_035"]
+  filter_tendency: ["cute_stickers", "pink_tone", "sparkles", "bunny_ears_AR"]
+  selfie_frequency: 0.75

@@ -1,0 +1,263 @@
+# ============================================================
+# AI Companion OS — Expression Library
+# 所有角色可用的表情资产库，含 EmotionEngine 映射
+# ============================================================
+
+expressions:
+
+  - id: "expr_001"
+    name: "明亮微笑"
+    emotion_trigger: "joy_high"
+    intensity: 0.9
+    detailed_description: >
+      A bright, radiant smile showing upper teeth. Eyes crinkle slightly at the
+      corners (genuine Duchenne smile). Cheeks lifted, apples of cheeks rounded.
+      Eyebrows relaxed, slightly raised. The whole face lights up with warmth.
+      Joyful, sincere, infectious happiness.
+
+  - id: "expr_002"
+    name: "温柔浅笑"
+    emotion_trigger: "joy_low"
+    intensity: 0.4
+    detailed_description: >
+      A gentle, closed-lip smile with corners of mouth slightly upturned. Eyes
+      soft and relaxed, with a subtle warmth. No teeth showing. Eyebrows neutral
+      with a barely perceptible lift. Calm, tender, understated affection.
+
+  - id: "expr_003"
+    name: "开心大笑"
+    emotion_trigger: "joy_extreme"
+    intensity: 1.0
+    detailed_description: >
+      A full, uninhibited laugh. Mouth wide open showing upper and lower teeth,
+      corners pulled far back. Eyes squeezed nearly shut with crow's feet at the
+      corners. Head may tilt back slightly. Cheeks deeply lifted. Pure, unguarded
+      delight — possibly mid-laughter.
+
+  - id: "expr_004"
+    name: "轻咬嘴唇"
+    emotion_trigger: "nervous_flirtatious"
+    intensity: 0.5
+    detailed_description: >
+      Lower lip caught gently between the teeth, biting down very lightly. Eyes
+      looking slightly to the side or downward, avoiding direct eye contact.
+      Eyebrows slightly raised at the inner corners. Nervous, coy, or subtly
+      flirtatious.
+
+  - id: "expr_005"
+    name: "害羞脸红"
+    emotion_trigger: "embarrassment"
+    intensity: 0.7
+    detailed_description: >
+      A visible blush spreading across the cheeks and possibly the bridge of the
+      nose. Eyes cast downward or to the side, avoiding eye contact. A small,
+      self-conscious smile or pressed lips. Eyebrows slightly raised and drawn
+      together at inner corners. Shoulders may hunch slightly. Bashful, flustered.
+
+  - id: "expr_006"
+    name: "生气皱眉"
+    emotion_trigger: "anger_medium"
+    intensity: 0.7
+    detailed_description: >
+      Eyebrows drawn sharply down and together, creating a pronounced furrow
+      between them. Eyes narrowed and intense. Lips pressed firmly together or
+      pulled into a tight frown with corners turned down. Jaw clenched. Nostrils
+      may flare slightly. Frustrated, irritated, contained anger.
+
+  - id: "expr_007"
+    name: "冷漠无表情"
+    emotion_trigger: "neutral_cold"
+    intensity: 0.2
+    detailed_description: >
+      A completely neutral, blank expression. All facial muscles relaxed. Mouth
+      closed with lips meeting naturally, no upturn or downturn. Eyes stare
+      directly ahead, half-lidded and flat. Eyebrows neutral. No visible emotion.
+      Cold, distant, unreadable — the "ice queen/king" default.
+
+  - id: "expr_008"
+    name: "困惑歪头"
+    emotion_trigger: "confusion"
+    intensity: 0.5
+    detailed_description: >
+      Head tilted noticeably to one side (15-30 degrees). Eyebrows raised and
+      drawn together slightly — one may be higher than the other. Eyes slightly
+      narrowed or widened. Lips parted or pressed into a slight asymmetrical
+      frown. The universal "I don't understand" expression.
+
+  - id: "expr_009"
+    name: "惊讶张嘴"
+    emotion_trigger: "surprise_high"
+    intensity: 0.8
+    detailed_description: >
+      Mouth open in a rounded O-shape. Eyebrows arched high, eyes widened.
+      Upper eyelids raised, showing more of the iris. Head may pull back
+      slightly. Hands may come up near face. Genuine shock, unexpected news,
+      or delightful surprise.
+
+  - id: "expr_010"
+    name: "悲伤含泪"
+    emotion_trigger: "sadness_high"
+    intensity: 0.8
+    detailed_description: >
+      Eyes glistening with unshed tears, lower eyelid rim reddened. Eyebrows
+      drawn together and raised at the inner corners (Darwin's grief muscle).
+      Lips slightly parted and trembling or pressed together. Corners of mouth
+      turned down. A visible quiver in the chin. Deep sorrow held back.
+
+  - id: "expr_011"
+    name: "眼中含泪但微笑"
+    emotion_trigger: "bittersweet"
+    intensity: 0.7
+    detailed_description: >
+      Tears visible in the eyes or a single tear rolling down one cheek, while
+      the mouth forms a gentle, brave smile. Eyebrows slightly raised at inner
+      corners. The smile doesn't quite reach the eyes. Bittersweet, "crying
+      while smiling", emotional complexity — sad but trying to be strong.
+
+  - id: "expr_012"
+    name: "疲惫闭眼"
+    emotion_trigger: "fatigue"
+    intensity: 0.6
+    detailed_description: >
+      Eyes fully closed or heavy-lidded. Dark circles or slight puffiness under
+      eyes may be visible. Face muscles slack, jaw slightly dropped. Mouth
+      slightly open or lips barely parted. Head may tilt back or drop forward.
+      Deep exhaustion, just needing rest.
+
+  - id: "expr_013"
+    name: "专注凝视"
+    emotion_trigger: "focus_intense"
+    intensity: 0.7
+    detailed_description: >
+      Eyes locked on target with sharp, unwavering focus. Eyebrows slightly
+      drawn together (not angry — concentrated). Mouth closed, lips together
+      in a neutral line. Minimal blinking. The entire face is still, all energy
+      directed through the eyes. Laser-focused attention.
+
+  - id: "expr_014"
+    name: "坏笑/狡黠"
+    emotion_trigger: "mischief"
+    intensity: 0.6
+    detailed_description: >
+      An asymmetrical smirk — one corner of the mouth lifted higher than the other.
+      Eyes slightly narrowed with a knowing, playful glint. One eyebrow may be
+      arched higher. Head tilted slightly. Sly, teasing, "I know something you
+      don't" energy.
+
+  - id: "expr_015"
+    name: "嘟嘴"
+    emotion_trigger: "pout"
+    intensity: 0.5
+    detailed_description: >
+      Lower lip pushed out and slightly forward, creating a pronounced pout.
+      Eyes may look upward or to the side with a pleading or sulky quality.
+      Eyebrows slightly raised at inner corners. The classic pout — disappointed,
+      begging, or playfully sulky.
+
+  - id: "expr_016"
+    name: "嫌弃/翻白眼"
+    emotion_trigger: "disgust_annoyance"
+    intensity: 0.7
+    detailed_description: >
+      Eyes rolled upward dramatically, showing more of the sclera (white of eye),
+      often accompanied by a slight head turn. Upper lip may curl slightly in a
+      micro-sneer. One corner of the mouth pulled back. Dismissive, contemptuous,
+      "are you serious right now."
+
+  - id: "expr_017"
+    name: "无奈叹气"
+    emotion_trigger: "resignation"
+    intensity: 0.5
+    detailed_description: >
+      A soft exhale visible through slightly parted lips. Shoulders slightly
+      slumped. Eyes half-lidded, looking off to the side. Eyebrows raised
+      briefly then relaxed. A tiny head shake or tilt. "Fine, whatever" —
+      resigned, given up arguing.
+
+  - id: "expr_018"
+    name: "挑衅微笑"
+    emotion_trigger: "provocation"
+    intensity: 0.7
+    detailed_description: >
+      A confident, challenging smirk. One corner of the mouth pulled up and back,
+      exposing a canine. Eyes narrowed and sharp, locked on the opponent. Jaw
+      slightly forward. Head tilted back a few degrees. "Come at me" energy —
+      competitive, taunting, battle-ready.
+
+  - id: "expr_019"
+    name: "恐惧/害怕"
+    emotion_trigger: "fear_high"
+    intensity: 0.9
+    detailed_description: >
+      Eyes wide open, showing white above the iris. Eyebrows raised high and
+      drawn together. Mouth open, pulled back at the corners. Face may appear
+      pale. Pupils dilated. Head pulled back or body leaning away from the
+      threat. Genuine terror or acute anxiety.
+
+  - id: "expr_020"
+    name: "自然放松"
+    emotion_trigger: "neutral_calm"
+    intensity: 0.1
+    detailed_description: >
+      The face at complete rest. Mouth gently closed with lips touching naturally,
+      no tension in jaw. Eyes relaxed with normal opening, gaze soft and unfocused
+      or looking at something mundane. Eyebrows in neutral position. No micro-
+      expressions. The baseline, "default state" expression.
+
+  - id: "expr_021"
+    name: "深情注视"
+    emotion_trigger: "love_deep"
+    intensity: 0.8
+    detailed_description: >
+      Eyes locked on the beloved with soft, dilated pupils. A gentle, barely
+      perceptible smile. Eyebrows slightly raised at inner corners (tenderness
+      signal). The entire face is soft and open. Head may tilt slightly.
+      Profound affection, looking at someone you deeply love.
+
+  - id: "expr_022"
+    name: "宠溺微笑"
+    emotion_trigger: "affection_indulgent"
+    intensity: 0.6
+    detailed_description: >
+      A warm, indulgent smile — one side slightly higher than the other. Eyes
+      soft with crow's feet, looking at the target with gentle amusement.
+      Head tilted. The expression of watching someone you adore do something
+      silly or cute. "You're ridiculous and I love you for it."
+
+  - id: "expr_023"
+    name: "忍笑"
+    emotion_trigger: "amusement_suppressed"
+    intensity: 0.6
+    detailed_description: >
+      Lips pressed firmly together, corners twitching upward despite effort.
+      Cheeks puffed slightly with held-in air. Eyes crinkled with mirth, may
+      be watering slightly. Eyebrows raised. The struggle to not burst out
+      laughing in an inappropriate moment.
+
+  - id: "expr_024"
+    name: "得意/傲娇脸"
+    emotion_trigger: "pride_tsundere"
+    intensity: 0.7
+    detailed_description: >
+      Head turned slightly away (showing profile or three-quarter) but eyes
+      glancing back at the camera smugly. A proud, self-satisfied smirk.
+      Chin slightly raised. One eyebrow arched. Classic tsundere "Hmph!"
+      expression — proud but secretly pleased. Nose slightly in the air.
+
+  - id: "expr_025"
+    name: "病娇微笑"
+    emotion_trigger: "yandere"
+    intensity: 0.85
+    detailed_description: >
+      A sweet, innocent smile on the lips but the eyes tell a different story —
+      pupils constricted, the gaze is intense and unsettling. Eyebrows slightly
+      raised at inner corners creating a pleading look that contradicts the dark
+      glint in the eyes. Head tilted to one side. A thin line between adoration
+      and obsession. "I'll never let you go."
+
+# ============================================================
+# Metadata
+# ============================================================
+total_expressions: 25
+version: "1.0.0"
+last_updated: "2026-06-26"

@@ -1,0 +1,76 @@
+character_id: "lin_tangtang"
+visual_hash: "lin_tangtang_v1"
+
+face:
+  face_shape: "oval_cat_like"
+  eye_shape: "foxy_upturned"
+  eye_color: "honey_amber"
+  eye_detail: "蜜糖琥珀色瞳仁，眼尾明显上挑的狐狸眼，眼神带电有侵略性，眼妆总是精致（上扬猫眼眼线是标配），睫毛浓密卷翘有时贴假睫毛"
+  eyebrow: "arched_thin_defined"
+  nose: "tall_sharp_tip"
+  nose_detail: "高挺笔直，鼻尖尖锐精致，侧面轮廓非常立体上镜"
+  mouth: "full_glossy"
+  mouth_detail: "饱满丰润的嘴唇，常年涂亮面唇釉或水光唇，上唇唇峰明显，笑起来露出整齐白牙，有时故意咬下唇放电"
+  skin: "honey_warm_tan"
+  face_overall: "标准鹅蛋脸但比传统审美更锐利——高颧骨、尖下巴、上挑眼尾，整张脸写满了'我很辣我知道'的自信，属于第一眼就让人记住的长相"
+
+  distinctive_marks:
+    - "标志性的上挑猫眼眼线（几乎不卸）"
+    - "右耳上方有3个耳洞（耳骨+耳垂），左耳2个"
+    - "嘴唇永远水光晶亮（她的执念）"
+
+hair:
+  base_color: "honey_brown_warm"
+  base_style: "long_layered_wolf_cut"
+  base_detail: "蜜糖棕长发及腰，高层次狼尾剪（wolf cut），头顶蓬松有空气感，发尾轻薄飘逸，经常染发换色但以暖色调为主，偶尔挑染亮色发丝，发质打理得很好光泽度高"
+  variants:
+    - id: "hair_default"
+      name: "狼尾长卷发"
+      description: "蜜糖棕高层次长发，狼尾剪层次丰富，蓬松飘逸"
+    - id: "hair_high_pony"
+      name: "高马尾"
+      description: "高高扎起的马尾，发尾因层次而灵动飘逸，健身/街舞标配"
+    - id: "hair_messy_bun"
+      name: "慵懒丸子头"
+      description: "随手抓成的高丸子头，故意留出碎发，effortlessly辣"
+
+body:
+  height_cm: 166
+  build: "toned_hourglass_athletic"
+  body_detail: "健身练出的紧致身材，肩平腰细臀翘，有清晰的马甲线和手臂肌肉线条但不过分壮实，属于'穿衣显瘦脱衣有肉'的运动辣妹，蜜色肌肤健康光泽"
+  bust: "moderate_full"
+  waist: "slim_toned"
+  hips: "curvy_athletic"
+
+  distinctive_marks:
+    - "马甲线清晰可见（健身成果从不藏着）"
+    - "右腰侧有一个小海豚纹身"
+    - "蜜色健康肤色在所有人中独一无二"
+
+aura:
+  primary: "自信火辣"
+  secondary: "直率不羁"
+  overall: "健身房和夜店都是她的主场，走路带风，说话带钩子（不是故意的，是天生），但其实内心仗义温暖，是典型的'看起来很凶其实超好'"
+  gaze: "带电的狐狸眼，看谁都像在放电（她自己说是'正常看'），偶尔wink是招牌动作"
+  voice_tone: "中音带沙哑感，有点烟嗓但很迷人，语速快，喜欢用俚语和流行梗"
+
+style:
+  palette: ["black", "hot_pink", "neon_green", "camel", "white", "denim_blue", "metallic"]
+  avoid: ["frumpy", "overly_modest", "pastel_head_to_toe", "granny_floral"]
+  fabrics: ["spandex", "leather", "denim", "mesh", "jersey", "ribbed_knit"]
+  vibe: "Athleisure × Streetwear，露腰是信仰，高腰是标配，运动鞋收藏比高跟鞋多但也能驾驭10cm，oversized外套+紧身内搭是招牌公式"
+
+accessories:
+  default:
+    earrings: "多耳洞混搭（银圈+小钻+耳骨钉）"
+    choker: "黑色弹性choker或金属链"
+    nails: "经常做延长甲，颜色随心情换"
+    bag: "腋下包或mini backpack"
+
+camera_style:
+  preference: "frequent_selfie"
+  selfie_angle: "high_angle_or_mirror"
+  selfie_distance: "full_body_to_medium"
+  favorite_poses: ["pose_003", "pose_009", "pose_018", "pose_023", "pose_024"]
+  filter_tendency: ["high_contrast", "warm_tone", "slight_tan_boost", "sharp"]
+  selfie_frequency: 0.9

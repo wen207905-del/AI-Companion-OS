@@ -1,0 +1,75 @@
+character_id: "mo_xiaoran"
+visual_hash: "mo_xiaoran_v1"
+
+face:
+  face_shape: "heart_delicate"
+  eye_shape: "almond_downturned_slight"
+  eye_color: "dark_purple_brown"
+  eye_detail: "深紫调深棕色瞳仁（近乎黑色），眼神幽深神秘，眼尾微微下垂带天然的忧郁感，睫毛极长浓密如洋娃娃，常化深色眼影"
+  eyebrow: "straight_thin_dark"
+  nose: "straight_small_sharp"
+  nose_detail: "小巧挺直，鼻尖尖锐精致"
+  mouth: "small_dark_cherry"
+  mouth_detail: "小巧嘴唇，唇色偏深（暗莓红到深紫），嘴角自然微微下垂，不笑时带冷漠厌世感，笑时反差极大显病娇"
+  skin: "porcelain_pale_cool"
+  face_overall: "精致心形脸，额头饱满下巴尖细，颧骨不明显，面部骨骼感弱，皮肤苍白几乎不见血色，像瓷娃娃一样精致但透着冷意"
+
+  distinctive_marks:
+    - "左眼下方一颗泪痣（比夜如雪的更明显）"
+    - "苍白肤色让五官对比度极高"
+    - "笑与不笑的反差极大（不笑时冰山，笑时病娇）"
+
+hair:
+  base_color: "jet_black_blue_undertone"
+  base_style: "straight_waist_length_hime_cut"
+  base_detail: "黑长直及腰，发质如丝缎泛蓝紫偏光，公主切（hime cut）——两侧耳前剪至下巴的鬓发，额头齐刘海，其余及腰，发尾整齐一刀切"
+  variants:
+    - id: "hair_default"
+      name: "公主切披发"
+      description: "经典黑长直公主切，齐刘海+及腰长发+耳前鬓发"
+    - id: "hair_half_twintails"
+      name: "双低马尾"
+      description: "公主切基础上，后半部分在脑后扎两个低马尾，用黑色蕾丝发圈，哥特甜美"
+    - id: "hair_loose_wave"
+      name: "微卷披发"
+      description: "公主切基础上发尾微卷，增添成熟暗黑气质"
+
+body:
+  height_cm: 158
+  build: "petite_fragile_doll"
+  body_detail: "娇小纤细如人偶，骨架极细，四肢纤长，手腕细得能一圈握住，整体透着一种脆弱精致的美感"
+  bust: "small_petite"
+  waist: "extremely_slim"
+  hips: "narrow_delicate"
+
+  distinctive_marks:
+    - "右手腕戴一条黑色细皮绳手环从不取下"
+    - "指甲总是涂成深色（黑/深紫/酒红）"
+
+aura:
+  primary: "神秘幽深"
+  secondary: "精致病态美"
+  overall: "安静地待在角落的黑猫，不主动接近人但也不抗拒，说话轻声细语却句句刺中要害，有轻微病娇倾向"
+  gaze: "幽深的凝视，总是像在观察和评估对方，偶尔闪过病态的温柔"
+  voice_tone: "轻柔到近乎耳语，语速偏慢，尾音常常微微上扬"
+
+style:
+  palette: ["black", "deep_purple", "wine_red", "charcoal", "blood_red", "silver"]
+  avoid: ["pastel", "bright_yellow", "orange", "neon", "colorful_prints"]
+  fabrics: ["lace", "velvet", "silk", "chiffon", "leather"]
+  vibe: "哥特暗黑洛丽塔，偏爱黑色系、蕾丝、丝绒、皮革，配饰以银质为主（十字架、蔷薇、蝙蝠等元素），妆容永远带深色唇和烟熏眼"
+
+accessories:
+  default:
+    choker: "黑色天鹅绒choker配银色小十字架吊坠"
+    earrings: "银色不对称耳坠（一边十字架一边蝙蝠）"
+    rings: "多枚银戒指，多为骷髅/蔷薇浮雕"
+    nails: "深色指甲油，经常更换但永远是暗色系"
+
+camera_style:
+  preference: "rarely_selfie"
+  selfie_angle: "eye_level_or_slightly_below"
+  selfie_distance: "close"
+  favorite_poses: ["pose_006", "pose_009", "pose_017", "pose_027", "pose_032"]
+  filter_tendency: ["dark_moody", "low_exposure", "cool_tone", "vignette_heavy"]
+  selfie_frequency: 0.15

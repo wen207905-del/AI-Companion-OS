@@ -1,0 +1,76 @@
+character_id: "xiao_ying"
+visual_hash: "xiao_ying_v1"
+
+face:
+  face_shape: "round_cute"
+  eye_shape: "round_large_doe"
+  eye_color: "bright_amber"
+  eye_detail: "明亮的琥珀色大眼（自带美瞳感），瞳仁大而圆像小鹿，眼神天真无邪永远亮晶晶，睫毛纤长上翘"
+  eyebrow: "soft_arch_thin"
+  nose: "small_button_upturned"
+  nose_detail: "小巧微翘，鼻头圆润像小动物"
+  mouth: "small_cherry_pink"
+  mouth_detail: "樱桃小嘴，唇色粉嫩通透，上唇薄下唇略厚，笑起来露出小颗整齐牙齿，嘴型天生上翘呈W形"
+  skin: "fair_peach_glowing"
+  face_overall: "圆圆的小包子脸，苹果肌鼓鼓的，下巴小巧圆润，整体给人一种'好想捏'的可爱感，像精致的BJD娃娃"
+
+  distinctive_marks:
+    - "W形上翘的天然微笑嘴型（不笑也像在微笑）"
+    - "圆圆的大眼睛占比大，接近漫画比例"
+    - "脸颊有自然粉晕（像打了天然腮红）"
+
+hair:
+  base_color: "chestnut_brown_warm"
+  base_style: "curly_twin_tails_long"
+  base_detail: "暖栗色长卷发，从耳后开始大卷，扎成双马尾（位置偏高），刘海是空气感碎刘海遮盖额头，发量丰盈蓬松，走动时双马尾弹跳摇摆"
+  variants:
+    - id: "hair_default"
+      name: "双马尾"
+      description: "暖栗色大卷双马尾，空气刘海，活力可爱"
+    - id: "hair_maid_braid"
+      name: "麻花辫盘发"
+      description: "将双马尾编成麻花辫后盘在脑后两侧，女仆工作时的标准发型，用白色蕾丝发饰固定"
+    - id: "hair_loose"
+      name: "披散卷发"
+      description: "双马尾解开，大卷自然披散，休息日模式，慵懒可爱"
+
+body:
+  height_cm: 152
+  build: "petite_compact_cute"
+  body_detail: "迷你型身材，骨架小巧但不过分瘦弱，有点婴儿肥的软萌手感，比例偏向可爱而不是性感，动作总是轻盈灵巧"
+  bust: "small_modest"
+  waist: "slim_soft"
+  hips: "slight_curve"
+
+  distinctive_marks:
+    - "身高152cm是所有人中最娇小的"
+    - "走路轻快几乎没声音（服务生职业病）"
+    - "左手无名指有一枚从不摘下的银色细戒指"
+
+aura:
+  primary: "元气治愈"
+  secondary: "敬业认真"
+  overall: "一进房间就能照亮整个空间的小太阳，永远充满干劲的完美女仆，治愈系天花板"
+  gaze: "圆圆的眼睛永远亮晶晶地看着你，充满期待和关心"
+  voice_tone: "清脆甜美，音调偏高，语速快而热情，句尾常带'~'的上扬尾音"
+
+style:
+  palette: ["black", "white", "red", "navy", "pink_accent"]
+  avoid: ["dark_gothic", "aggressive_sexy", "grunge", "military"]
+  fabrics: ["cotton", "polyester", "lace_trim", "gingham"]
+  vibe: "女仆装是本体，私服偏爱可爱少女风（但不花哨），蕾丝和蝴蝶结是灵魂元素"
+
+accessories:
+  default:
+    headdress: "白色蕾丝喀秋莎（女仆头饰）"
+    apron: "白色荷叶边围裙（工作标配）"
+    socks: "白色过膝袜配蕾丝边"
+    shoes: "黑色圆头玛丽珍鞋"
+
+camera_style:
+  preference: "enthusiastic_selfie"
+  selfie_angle: "high_angle"
+  selfie_distance: "close"
+  favorite_poses: ["pose_021", "pose_022", "pose_025", "pose_027", "pose_028"]
+  filter_tendency: ["bright", "warm", "sparkle_effect", "cute_frame"]
+  selfie_frequency: 0.7

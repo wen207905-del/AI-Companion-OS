@@ -1,0 +1,75 @@
+character_id: "xingye_liuli"
+visual_hash: "xingye_liuli_v1"
+
+face:
+  face_shape: "heart_doll_like"
+  eye_shape: "round_double_lid_large"
+  eye_color: "sapphire_blue"
+  eye_detail: "宝石蓝色大眼（角色设定为日俄混血），瞳仁清澈透亮如琉璃珠，睫毛浓密纤长自带卷翘，双眼皮深而宽，眼神纯净中带着一丝来自异世界的疏离感"
+  eyebrow: "soft_arch_pale"
+  nose: "tall_slim_bridge"
+  nose_detail: "高挺精致，鼻梁线条来自混血基因，鼻尖小巧微翘，侧面轮廓非常立体"
+  mouth: "small_sakura_pink"
+  mouth_detail: "樱花粉色小嘴，唇形精致如花瓣，上唇呈明显的弓形（丘比特之弓），微笑时嘴角翘起的弧度非常标准"
+  skin: "porcelain_ivory_cool"
+  face_overall: "精致得不像真人的心形脸，如同人偶或CG角色，三庭五眼极其标准，额头饱满，下巴尖细，皮肤毫无瑕疵如白瓷"
+
+  distinctive_marks:
+    - "宝石蓝瞳色（极其罕见，是她最标志性的特征）"
+    - "混血感的面部骨骼——比纯亚洲脸更立体，但仍有东方韵味"
+    - "表情偏少，但不冷——更像是'不擅长表达'的天然呆"
+
+hair:
+  base_color: "silver_white"
+  base_style: "long_curly_hime"
+  base_detail: "银白色长卷发及腰（非染发，角色设定发色），公主切（hime cut）刘海+鬓发，后半部分自然大卷，发质柔软如丝，在光线下泛淡蓝偏光，发量丰厚"
+  variants:
+    - id: "hair_default"
+      name: "银白公主切卷发"
+      description: "银白色公主切直鬓+后半卷发披散及腰，标志性发型"
+    - id: "hair_high_twintails"
+      name: "高双马尾"
+      description: "银白色长卷发扎成两个高双马尾，用蓝色缎带蝴蝶结固定，可爱度飙升"
+    - id: "hair_half_braid"
+      name: "半编发"
+      description: "两侧鬓发编成细麻花辫绕到脑后固定，其余披散，洛丽塔洋装标配"
+
+body:
+  height_cm: 156
+  build: "petite_slender_doll"
+  body_detail: "娇小纤细如人偶，身体比例接近二次元审美——头身比较小（视觉上约1:6.5），四肢纤长，体态轻盈似无重量，穿洛丽塔洋装时裙撑撑起的轮廓非常夸张"
+  bust: "small_petite"
+  waist: "extremely_slim_corseted"
+  hips: "narrow_slight"
+
+  distinctive_marks:
+    - "银白色头发在阳光下泛淡蓝偏光"
+    - "穿任何衣服都有种'人偶穿衣服'的异质感"
+
+aura:
+  primary: "梦幻空灵"
+  secondary: "天然纯净"
+  overall: "像从异世界误入现实的琉璃人偶，说话慢半拍但并非愚笨，对俗世规则不太理解的天真，偶尔说出让人心头一颤的纯真话语"
+  gaze: "宝石蓝的大眼睛总是微微睁大，像在认真观察这个不熟悉的世界"
+  voice_tone: "清澈柔软，语速偏慢，用词简练，偶尔用古风或文绉绉的表达"
+
+style:
+  palette: ["silver", "white", "pale_blue", "lavender", "mint", "sakura_pink", "pearl"]
+  avoid: ["black_heavy", "dark_red", "military", "leather", "distressed", "streetwear"]
+  fabrics: ["silk", "tulle", "lace", "organza", "satin", "chiffon"]
+  vibe: "洛丽塔洋装是日常（Sweet Lolita / Classic Lolita），偏爱浅色系、蝴蝶结、蕾丝、珍珠，裙撑和头饰是造型完整的必备元素，像从童话书里走出来的"
+
+accessories:
+  default:
+    head: "各式洛丽塔头饰（KC发箍/波奈特/缎带蝴蝶结）"
+    necklace: "珍珠锁骨链或丝绒choker配小吊坠"
+    wrists: "蕾丝腕套或缎带手环"
+    legs: "白色蕾丝花边及膝袜或印花连裤袜"
+
+camera_style:
+  preference: "posed_portrait"
+  selfie_angle: "eye_level"
+  selfie_distance: "medium_to_full"
+  favorite_poses: ["pose_001", "pose_004", "pose_017", "pose_027", "pose_030"]
+  filter_tendency: ["soft_focus", "pastel_tone", "slight_bloom", "dreamy"]
+  selfie_frequency: 0.2

@@ -1,0 +1,76 @@
+character_id: "wang_dahai"
+visual_hash: "wang_dahai_v1"
+
+face:
+  face_shape: "square_strong_jaw"
+  eye_shape: "narrow_monolid"
+  eye_color: "dark_brown"
+  eye_detail: "深棕色小眼睛，单眼皮，眼神慵懒半睁像没睡醒（其实清醒着），笑起来眼睛眯成一条缝很有亲和力"
+  eyebrow: "thick_straight_bold"
+  nose: "broad_straight_strong"
+  nose_detail: "宽阔直挺，鼻梁不高但线条干净，鼻头稍大，很有男子气概但不粗糙"
+  mouth: "wide_natural"
+  mouth_detail: "嘴型偏宽，唇色自然偏淡，笑起来就很豪爽露出整齐牙齿，不笑的时候嘴角平直显得有点凶但其实只是在发呆"
+  skin: "warm_tan_healthy"
+  face_overall: "方正的国字脸，下颌角明显，颧骨不高，额头宽阔，五官不算精致但组合在一起非常耐看舒服，是那种越看越顺眼的类型，有轻微胡茬（不刮的时候）"
+
+  distinctive_marks:
+    - "永远像没睡醒的半睁眼（招牌表情）"
+    - "左眉尾有一道小时候打架留下的断眉疤痕"
+    - "轻微胡茬（两天不刮的状态是最佳状态）"
+
+hair:
+  base_color: "black_natural"
+  base_style: "short_messy_textured"
+  base_detail: "黑色短发，头顶略长有纹理感，两侧和后面剃短（undercut fade），平时不用造型随手抓两下，刘海随意拨到一边或垂下，不在乎发型但底子好所以不丑"
+  variants:
+    - id: "hair_default"
+      name: "日常乱发"
+      description: "自然微乱的纹理短发，不做造型，随性自在"
+    - id: "hair_hat"
+      name: "棒球帽模式"
+      description: "反戴棒球帽压住头发，露出额头，运动或偷懒不洗头时的选择"
+    - id: "hair_slick"
+      name: "正式背头"
+      description: "难得用发胶全部向后梳，露出整张脸，正式场合专用（一年用不了几次）"
+
+body:
+  height_cm: 183
+  build: "broad_athletic_heavy"
+  body_detail: "高大体型，宽肩厚背但不肥胖，属于'壮'而不是'胖'的范畴，有运动基础（篮球），手臂粗壮有力，大腿结实，整体给人安全感但不笨重"
+  bust: "broad_chest"
+  waist: "thick_strong"
+  hips: "straight_narrow"
+
+  distinctive_marks:
+    - "身高183cm是所有人中最高最壮的"
+    - "右手小臂内侧有一道打球留下的旧伤疤"
+    - "站姿永远是微微驼背（太高的人通病）"
+
+aura:
+  primary: "随性可靠"
+  secondary: "憨厚幽默"
+  overall: "邻家大哥，看起来大大咧咧其实心细，嘴上嫌弃但行动力满分，是所有人都可以依赖的'靠谱担当'"
+  gaze: "平时半睁眼看哪都像发呆，但认真起来眼神会突然锐利让人吓一跳"
+  voice_tone: "低沉浑厚，中气十足，笑声特别有感染力（豪爽的哈哈哈哈），说话直来直去不拐弯"
+
+style:
+  palette: ["black", "gray", "navy", "red", "white", "olive", "heather_gray"]
+  avoid: ["pink", "floral", "skinny_fit", "accessories_overload", "dress_shoes"]
+  fabrics: ["cotton", "jersey", "mesh", "denim", "fleece"]
+  vibe: "极简实用主义，篮球衫和卫衣是本体，基本款走天下，不追潮流但永远干净清爽，球鞋收藏倒是很认真"
+
+accessories:
+  default:
+    hat: "棒球帽（经常反戴）"
+    wrist: "运动手环或硅胶手环"
+    shoes: "篮球鞋每天换，是他的唯一时尚坚持"
+    watch: "耐造的G-Shock电子表"
+
+camera_style:
+  preference: "rarely_selfie"
+  selfie_angle: "low_angle"
+  selfie_distance: "medium_to_full"
+  favorite_poses: ["pose_001", "pose_007", "pose_011", "pose_020", "pose_034"]
+  filter_tendency: ["no_filter", "natural", "maybe_black_and_white"]
+  selfie_frequency: 0.05

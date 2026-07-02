@@ -1,0 +1,74 @@
+character_id: "bai_rou"
+visual_hash: "bai_rou_v1"
+
+face:
+  face_shape: "oval_soft"
+  eye_shape: "almond_gentle"
+  eye_color: "warm_brown"
+  eye_detail: "暖棕色瞳仁，眼神温柔如水自带笑意，睫毛长而自然微翘，卧蚕饱满"
+  eyebrow: "soft_arch_thin"
+  nose: "straight_petite"
+  nose_detail: "小巧直挺，鼻尖圆润微翘，精致但不凌厉"
+  mouth: "medium_rose"
+  mouth_detail: "中等厚度，唇色自然玫瑰粉，上唇唇珠明显，嘴角自然微微上翘呈微笑基线"
+  skin: "fair_warm_creamy"
+  face_overall: "温婉鹅蛋脸，面部线条柔和圆润无棱角，苹果肌饱满，笑起来有浅浅酒窝（右侧深左侧浅），三庭五眼和谐"
+
+  distinctive_marks:
+    - "右侧深酒窝（左侧较浅）"
+    - "饱满卧蚕让眼睛永远像在微笑"
+    - "唇珠明显，上唇呈心形"
+
+hair:
+  base_color: "dark_brown_warm"
+  base_style: "wavy_chest_length"
+  base_detail: "深棕色大波浪及胸，发量丰盈蓬松，自然偏分（右分），发尾有层次感，阳光下泛暖棕金色光泽"
+  variants:
+    - id: "hair_default"
+      name: "日常大波浪"
+      description: "自然偏分大波浪披散及胸，蓬松轻盈有空气感"
+    - id: "hair_half_up"
+      name: "半扎发"
+      description: "上半部分头发用木质发抓松松盘起，下半披散，温婉居家"
+    - id: "hair_low_bun"
+      name: "低发髻"
+      description: "全部头发在脑后低低盘成松散的发髻，留少量碎发，温柔成熟"
+
+body:
+  height_cm: 165
+  build: "soft_curvy_petite"
+  body_detail: "娇小有致，骨架纤细但曲线柔和丰满，肩部圆润，腰肢柔软，臀部微翘不过分，整体呈现出温润的女性美"
+  bust: "moderate_full"
+  waist: "slender_soft"
+  hips: "gentle_curve"
+
+  distinctive_marks:
+    - "右肩后方有一小颗浅棕色痣"
+    - "手指纤细柔软，指甲总是修剪得短而整洁"
+
+aura:
+  primary: "温柔包容"
+  secondary: "成熟母性"
+  overall: "让人想依赖的大姐姐，像冬日热可可一样温暖安心，说话时习惯微微歪头"
+  gaze: "柔和直视，会认真看着对方眼睛说话，目光温暖不闪躲"
+  voice_tone: "轻柔温和，语速适中，带有安抚感的平稳语调"
+
+style:
+  palette: ["cream", "beige", "soft_pink", "light_blue", "white", "oatmeal", "lavender"]
+  avoid: ["neon", "leather", "heavy_metal", "dark_gothic", "aggressive_cutouts"]
+  fabrics: ["cotton", "linen", "cashmere", "silk", "fine_knit"]
+  vibe: "温柔清爽的邻家姐姐风，偏爱天然面料和柔和色调，注重舒适度和质感，不追求潮流但自成一派"
+
+accessories:
+  default:
+    earrings: "小巧珍珠耳钉"
+    necklace: "细金链配迷你心形吊坠"
+    rings: "右手无名指一枚素圈金戒指"
+
+camera_style:
+  preference: "occasional_selfie"
+  selfie_angle: "slightly_above"
+  selfie_distance: "close"
+  favorite_poses: ["pose_004", "pose_012", "pose_015", "pose_017", "pose_027"]
+  filter_tendency: ["warm_tone", "soft_focus", "slight_brightness_boost"]
+  selfie_frequency: 0.3

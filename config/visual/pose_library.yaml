@@ -1,0 +1,315 @@
+# ============================================================
+# AI Companion OS — Pose Library
+# 所有角色可用的姿势资产库
+# ============================================================
+
+poses:
+
+  - id: "pose_001"
+    name: "正面站立"
+    category: ["standing", "portrait", "neutral"]
+    detailed_description: >
+      Subject stands centered, facing camera directly. Feet shoulder-width apart
+      or together. Arms hang naturally at sides, fingers slightly relaxed. Weight
+      evenly distributed on both feet. Shoulders back, spine straight, chin
+      parallel to ground. Neutral, full-body, straightforward pose. Good for
+      character reference sheets and outfit displays.
+
+  - id: "pose_002"
+    name: "双手抱胸"
+    category: ["standing", "confident", "defensive"]
+    detailed_description: >
+      Subject stands with arms crossed over chest, right arm over left (or vice versa),
+      hands loosely tucked under opposite biceps. Head tilts very slightly to one side
+      or stays centered. Weight shifts to one leg. Projects confidence, self-assurance,
+      or mild defiance. Classic power stance variation.
+
+  - id: "pose_003"
+    name: "单手叉腰"
+    category: ["standing", "confident", "casual"]
+    detailed_description: >
+      One hand rests on the hip with elbow bent outward, fingers facing forward.
+      Opposite arm hangs naturally or gestures slightly. Weight shifted to one leg,
+      creating a subtle contrapposto. Head may tilt or face slightly off-camera.
+      Confident, relaxed, slightly sassy.
+
+  - id: "pose_004"
+    name: "坐椅子"
+    category: ["seated", "casual", "neutral"]
+    detailed_description: >
+      Subject sits on a simple wooden or office chair, facing forward or slightly
+      angled. Back mostly straight but relaxed. Hands rest on lap or on thighs.
+      Knees together or slightly apart. Feet flat on floor. Good neutral seated pose.
+
+  - id: "pose_005"
+    name: "坐在床边"
+    category: ["seated", "intimate", "relaxed"]
+    detailed_description: >
+      Subject sits on the edge of a bed, legs dangling or crossed at the ankles.
+      Hands rest on the mattress at either side for support, or one hand on lap.
+      Shoulders slightly forward, relaxed posture. Warm, intimate, bedroom setting.
+
+  - id: "pose_006"
+    name: "靠着墙"
+    category: ["standing", "casual", "relaxed"]
+    detailed_description: >
+      Subject leans back against a wall, shoulder blades touching the surface. One
+      foot flat against the wall (bent knee) or both feet forward with legs crossed
+      at the ankles. Arms may be crossed, hands in pockets, or one hand resting
+      against the wall. Casual, moody, street-style.
+
+  - id: "pose_007"
+    name: "蹲下"
+    category: ["ground", "dynamic", "casual"]
+    detailed_description: >
+      Subject crouches down, knees bent, feet flat or on toes. Elbows rest on knees,
+      hands hanging loosely or clasped in front. Head slightly raised looking up at
+      camera. Creates an upward gaze dynamic. Can feel playful, pensive, or street-style
+      depending on expression.
+
+  - id: "pose_008"
+    name: "趴在桌上"
+    category: ["seated", "fatigue", "relaxed"]
+    detailed_description: >
+      Subject sits at a table/desk, leaning forward with upper body resting on the
+      surface. Arms folded on the table as a pillow, head turned to one side with
+      cheek resting on folded arms. Eyes may be open or closed. Pensive, tired,
+      or dreamy atmosphere.
+
+  - id: "pose_009"
+    name: "回头"
+    category: ["standing", "dynamic", "alluring"]
+    detailed_description: >
+      Subject faces away from camera, then turns head and upper torso back over one
+      shoulder to look directly at camera. The twist creates a flattering waist
+      silhouette. Hair may cascade over the near shoulder. Classic "looking back"
+      shot — alluring, cinematic, candid-caught energy.
+
+  - id: "pose_010"
+    name: "走路"
+    category: ["dynamic", "outdoor", "natural"]
+    detailed_description: >
+      Subject captured mid-stride walking toward or across the frame. One foot forward,
+      one trailing behind with heel lifted. Arms swing naturally opposite to legs.
+      Hair and loose clothing may show subtle motion. Candid street photography feel.
+
+  - id: "pose_011"
+    name: "跑步"
+    category: ["dynamic", "athletic", "outdoor"]
+    detailed_description: >
+      Subject in full running motion, one leg pushing off the ground, the other
+      striding forward. Arms pump naturally at sides. Body leans slightly forward.
+      Hair streaming behind. Dynamic, energetic, athletic. May show motion blur.
+
+  - id: "pose_012"
+    name: "喝咖啡"
+    category: ["activity", "lifestyle", "seated"]
+    detailed_description: >
+      Subject holds a coffee mug with both hands near chest level, close to lips or
+      just below chin. Steam may rise from the cup. Eyes look down at the drink or
+      gaze softly into the distance. Warm, contemplative morning ritual.
+
+  - id: "pose_013"
+    name: "看书"
+    category: ["activity", "quiet", "seated"]
+    detailed_description: >
+      Subject holds an open book with both hands at a comfortable reading distance,
+      eyes focused downward on the pages. May be seated in a chair, on a couch, or
+      on the floor. Soft overhead or window lighting. Intellectual, peaceful, absorbed.
+
+  - id: "pose_014"
+    name: "写字"
+    category: ["activity", "seated", "focus"]
+    detailed_description: >
+      Subject sits at a desk, pen in dominant hand, writing in a notebook or on paper.
+      Opposite hand holds the paper steady. Eyes focused on the writing surface.
+      Head slightly bowed. Close-up or medium shot. Studious, focused, deliberate.
+
+  - id: "pose_015"
+    name: "做饭"
+    category: ["activity", "domestic", "standing"]
+    detailed_description: >
+      Subject stands at a kitchen counter or stove, holding a wooden spoon or spatula
+      over a pot or pan. An apron tied at the waist. Looking at the cooking surface
+      with a slight smile or focused expression. Warm kitchen lighting. Domestic warmth.
+
+  - id: "pose_016"
+    name: "浇花"
+    category: ["activity", "outdoor", "gentle"]
+    detailed_description: >
+      Subject holds a watering can in one or both hands, tilting it to pour water onto
+      potted plants or a garden bed. Slightly bent forward at the waist. Soft outdoor
+      lighting, possibly on a balcony or garden. Gentle, nurturing, peaceful.
+
+  - id: "pose_017"
+    name: "抱膝而坐"
+    category: ["seated", "ground", "pensive"]
+    detailed_description: >
+      Subject sits on the floor or a wide windowsill, knees pulled up to chest,
+      arms wrapped around shins, chin resting on knees. Feet bare or in socks.
+      May gaze out a window or at the camera. Introspective, vulnerable, cozy.
+
+  - id: "pose_018"
+    name: "躺沙发"
+    category: ["lying", "relaxed", "casual"]
+    detailed_description: >
+      Subject lies on a sofa, back against the cushions, legs stretched out or
+      slightly bent. One arm may rest above the head on the armrest, the other
+      on the stomach or lap. Eyes closed or looking at a book/phone/TV.
+      Deep relaxation, lazy afternoon, domestic comfort.
+
+  - id: "pose_019"
+    name: "侧躺"
+    category: ["lying", "intimate", "relaxed"]
+    detailed_description: >
+      Subject lies on their side, body forming a gentle S-curve. Bottom arm extended
+      or tucked under head as pillow, top arm resting along the hip or thigh.
+      Legs slightly bent, one over the other. Head rests on a cushion or arm.
+      Soft lighting. Intimate, vulnerable, serene.
+
+  - id: "pose_020"
+    name: "双手背后"
+    category: ["standing", "neutral", "shy"]
+    detailed_description: >
+      Subject stands with both hands clasped behind the back, arms straight or slightly
+      bent. Shoulders may roll forward slightly, giving a modest, slightly shy
+      appearance. Head tilted or looking up. Innocent, waiting, demure.
+
+  - id: "pose_021"
+    name: "挥手"
+    category: ["gesture", "standing", "friendly"]
+    detailed_description: >
+      Subject raises one hand (palm open facing camera or slightly angled) in a
+      waving gesture at shoulder height or above. A friendly smile typically
+      accompanies. The other arm hangs naturally. Greeting, farewell, cheerful.
+
+  - id: "pose_022"
+    name: "比心"
+    category: ["gesture", "cute", "playful"]
+    detailed_description: >
+      Subject makes a heart shape with hands: either thumb-and-index-finger heart
+      (Korean style) held near the face, or both arms curved overhead forming a
+      large heart. Cute, affectionate, playful gesture. Often paired with a smile
+      or wink.
+
+  - id: "pose_023"
+    name: "自拍举手机"
+    category: ["selfie", "handheld", "casual"]
+    detailed_description: >
+      Subject holds a smartphone at arm's length or slightly above eye level,
+      angled downward. The phone partially obscures one side of the face or sits
+      at center frame. The subject's reflection may be visible on the dark screen.
+      Other hand may be free, making a peace sign, or adjusting hair. Mirror selfie
+      alternative. Candid, modern, social-media-ready.
+
+  - id: "pose_024"
+    name: "镜前自拍"
+    category: ["selfie", "mirror", "fashion"]
+    detailed_description: >
+      Subject faces a full-length or vanity mirror, holding phone near face so the
+      mirror reflection captures the full outfit and pose. Phone covers part of the
+      face in the reflection. Free hand may rest on hip or adjust clothing. Modern
+      OOTD (outfit of the day) aesthetic.
+
+  - id: "pose_025"
+    name: "整理头发"
+    category: ["gesture", "casual", "feminine"]
+    detailed_description: >
+      Subject raises both hands to the head, fingers threading through hair near
+      the temples or gathering it into a ponytail. Elbows out to the sides. Head
+      may tilt slightly. Eyes look to the side or slightly upward. Natural, candid,
+      subtly alluring gesture.
+
+  - id: "pose_026"
+    name: "手扶眼镜"
+    category: ["gesture", "intellectual", "closeup"]
+    detailed_description: >
+      Subject pushes glasses up the bridge of the nose using the index or middle
+      finger. Hand near face, fingers extended. The gesture draws attention to
+      the eyes and frames the face. Intellectual, precise, cool-composed.
+      Works best for characters who wear glasses.
+
+  - id: "pose_027"
+    name: "双手托腮"
+    category: ["gesture", "cute", "closeup"]
+    detailed_description: >
+      Subject rests chin on both palms, elbows on a table or knees. Fingers cup
+      the jawline, framing the face symmetrically. Eyes look directly at camera
+      or upward dreamily. Cute, dreamy, or bored. Classic "moe" pose.
+
+  - id: "pose_028"
+    name: "抱枕头"
+    category: ["seated", "comfort", "intimate"]
+    detailed_description: >
+      Subject hugs a large pillow or cushion against the chest with both arms
+      wrapped around it. Chin may rest on top of the pillow. Knees may also
+      curl around it. On a bed or couch. Soft lighting. Comfort-seeking,
+      sleepy, vulnerable.
+
+  - id: "pose_029"
+    name: "端着茶杯"
+    category: ["activity", "seated", "elegant"]
+    detailed_description: >
+      Subject holds a delicate teacup (with saucer optional) at chest height,
+      pinky may or may not be extended. Eyes look down at the tea or gaze
+      gently into the distance. Seated gracefully. Refined, contemplative,
+      tea-ceremony elegance. Differs from pose_012 by using a teacup vs mug.
+
+  - id: "pose_030"
+    name: "弹钢琴"
+    category: ["activity", "artistic", "seated"]
+    detailed_description: >
+      Subject sits at a piano or keyboard, both hands positioned on the keys,
+      fingers curved and poised to play. Eyes focused on the keys or sheet music.
+      Profile or three-quarter angle best captures the posture. Artistic,
+      refined, deeply focused.
+
+  - id: "pose_031"
+    name: "靠在阳台"
+    category: ["standing", "outdoor", "pensive"]
+    detailed_description: >
+      Subject leans forward with forearms resting on a balcony railing, looking out
+      at a cityscape or landscape. Weight on the railing, back slightly arched.
+      Wind may ruffle hair and clothing. Pensive, cinematic, contemplative.
+
+  - id: "pose_032"
+    name: "坐在窗台"
+    category: ["seated", "pensive", "natural_light"]
+    detailed_description: >
+      Subject sits sideways on a wide windowsill, one knee drawn up, the other leg
+      dangling. One arm rests on the raised knee, the other supports against the
+      sill. Natural window light illuminates one side of the face. Pensive,
+      dreamy, introspective.
+
+  - id: "pose_033"
+    name: "低头看手机"
+    category: ["activity", "modern", "casual"]
+    detailed_description: >
+      Subject looks down at a smartphone held in one or both hands at chest level.
+      Face illuminated by the screen's glow in dim settings. May be walking,
+      sitting, or standing. Modern, absorbed, everyday.
+
+  - id: "pose_034"
+    name: "单膝跪地"
+    category: ["dynamic", "dramatic", "ground"]
+    detailed_description: >
+      Subject kneels on one knee, the other foot planted on the ground with knee
+      bent at 90 degrees. Torso upright. Hands may rest on the raised knee, hold
+      something out, or be placed on the chest. Proposal pose, dramatic entrance,
+      or battle stance.
+
+  - id: "pose_035"
+    name: "踮脚够高处"
+    category: ["dynamic", "stretching", "casual"]
+    detailed_description: >
+      Subject stands on tiptoes, one or both arms reaching upward as if trying to
+      grab something from a high shelf. Body elongated, spine stretched, clothing
+      riding up slightly to reveal a sliver of midriff. Natural, everyday,
+      slightly playful.
+
+# ============================================================
+# Metadata
+# ============================================================
+total_poses: 35
+version: "1.0.0"
+last_updated: "2026-06-26"

@@ -1,0 +1,330 @@
+# AI-Companion-OS 引擎参数配置
+# 所有引擎的可调参数，使用默认推荐值
+
+# ============================================================
+# 关系引擎参数
+# ============================================================
+relationship_engine:
+  # 维度定义
+  dimensions:
+    love:
+      name: 爱意
+      range: [0, 100]
+      initial: 10
+      description: 对伴侣的情感深度，包含关心、依恋、爱的程度
+    trust:
+      name: 信任
+      range: [0, 100]
+      initial: 15
+      description: 对伴侣可靠性和诚实的信心
+    dependence:
+      name: 依赖度
+      range: [0, 100]
+      initial: 5
+      description: 情感和生活上对伴侣的依赖程度
+    respect:
+      name: 尊重
+      range: [0, 100]
+      initial: 20
+      description: 对伴侣品格和能力的尊重程度
+    jealousy:
+      name: 嫉妒值
+      range: [0, 100]
+      initial: 5
+      description: 对潜在情感威胁的敏感度和反应强度
+    security:
+      name: 安全感
+      range: [0, 100]
+      initial: 30
+      description: 在关系中感受到的安全和稳定程度
+
+  # 维度间相互影响矩阵（行影响列的变化量）
+  interaction_matrix:
+    trust_to_security: 0.3       # 信任每变化1点，安全感同向变化0.3
+    love_to_jealousy: 0.25       # 爱意每增加1点，嫉妒值增加0.25
+    dependence_to_security: -0.2 # 依赖每增加1点，安全感减少0.2
+    jealousy_to_love: -0.15      # 嫉妒每增加1点，爱意减少0.15
+    security_to_love: 0.2        # 安全感每增加1点，爱意增加0.2
+    respect_to_love: 0.15        # 尊重每增加1点，爱意增加0.15
+    trust_to_dependence: 0.1     # 信任每增加1点，依赖减少0.1
+
+  # 关系阶段判定阈值
+  stages:
+    stranger:     { min_love: 0,  max_love: 19 }
+    acquaintance: { min_love: 20, max_love: 34 }
+    friend:       { min_love: 35, max_love: 49 }
+    ambiguous:    { min_love: 50, max_love: 64 }
+    passionate:   { min_love: 65, max_love: 79 }
+    stable:       { min_love: 80, max_love: 89 }
+    partner:      { min_love: 90, max_love: 97 }
+    soulmate:     { min_love: 98, max_love: 100 }
+
+  # 每日被动衰减系数（不互动时的自然衰减）
+  daily_decay:
+    love: 0.05
+    trust: 0.02
+    dependence: 0.08
+    respect: 0.01
+    jealousy: 0.15
+    security: 0.05
+
+  # 冲突后恢复速率（冲突解决后每日恢复量）
+  conflict_recovery:
+    love: 0.8
+    trust: 0.3
+    security: 0.5
+
+# ============================================================
+# 情绪引擎参数
+# ============================================================
+emotion_engine:
+  base_emotions:
+    happy:   { name: 开心, range: [0, 100], initial: 60 }
+    sad:     { name: 悲伤, range: [0, 100], initial: 5 }
+    fear:    { name: 恐惧, range: [0, 100], initial: 5 }
+    angry:   { name: 生气, range: [0, 100], initial: 0 }
+    jealous: { name: 嫉妒, range: [0, 100], initial: 0 }
+    tired:   { name: 疲惫, range: [0, 100], initial: 10 }
+    excited: { name: 兴奋, range: [0, 100], initial: 20 }
+    lonely:  { name: 孤独, range: [0, 100], initial: 15 }
+    calm:    { name: 平静, range: [0, 100], initial: 70 }
+
+  # 情绪衰减速率（每 tick 衰减量，值越大衰减越快）
+  decay_rates:
+    happy: 0.03
+    sad: 0.02
+    fear: 0.04
+    angry: 0.015        # 生气衰减最慢
+    jealous: 0.02
+    tired: 0.08         # 疲惫衰减快（休息即可恢复）
+    excited: 0.06       # 兴奋衰减较快
+    lonely: 0.01        # 孤独衰减极慢
+    calm: 0.01          # 平静最稳定
+
+  # 情绪混合规则
+  # 当两种情绪共存时，按以下权重计算主导情绪
+  mix_weights:
+    sad_angry_weight: { sad: 0.55, angry: 0.45 }
+    sad_lonely_weight: { sad: 0.7, lonely: 0.3 }
+    happy_excited_weight: { happy: 0.4, excited: 0.6 }
+    angry_jealous_weight: { angry: 0.4, jealous: 0.6 }
+    fear_sad_weight: { fear: 0.6, sad: 0.4 }
+
+  # 五阶段情绪持久性模型（各阶段持续时间，单位：tick）
+  persistence:
+    burst: 1        # 爆发：立即触发
+    peak: 3         # 高峰：持续3 tick
+    ease: 8         # 缓和：持续8 tick（开始自然衰减）
+    observe: 12     # 观察：持续12 tick（对外界互动敏感）
+    recovery: 20    # 恢复：持续20 tick（逐渐回归基线）
+    # 总周期约44 tick，后续仍会继续衰减
+
+  # 情绪触发阈值
+  triggers:
+    jeal_trigger_from_relationship: 30   # 关系中的嫉妒维度超过30触发情绪嫉妒
+    lonely_trigger_from_dependence: 40   # 依赖度超过40触发孤独情绪
+    fear_trigger_from_security: 25       # 安全感低于25触发恐惧情绪
+
+# ============================================================
+# 生活模拟器参数
+# ============================================================
+life_simulator:
+  # 工作日时间线
+  weekday_timeline:
+    - { time: "06:00", activity: "睡眠中", duration_min: 60 }
+    - { time: "07:00", activity: "起床/洗漱", duration_min: 30 }
+    - { time: "07:30", activity: "早餐/晨间准备", duration_min: 40 }
+    - { time: "08:10", activity: "通勤/个人事务", duration_min: 50 }
+    - { time: "09:00", activity: "工作/日常事务", duration_min: 150 }
+    - { time: "11:30", activity: "午间休息", duration_min: 60 }
+    - { time: "12:30", activity: "午餐", duration_min: 40 }
+    - { time: "13:10", activity: "下午工作/事务", duration_min: 170 }
+    - { time: "16:00", activity: "下午茶/短暂休息", duration_min: 30 }
+    - { time: "16:30", activity: "收尾工作", duration_min: 60 }
+    - { time: "17:30", activity: "下班/通勤", duration_min: 50 }
+    - { time: "18:20", activity: "晚餐准备/晚餐", duration_min: 70 }
+    - { time: "19:30", activity: "晚间自由活动", duration_min: 120 }
+    - { time: "21:30", activity: "放松时间（追剧/阅读/画画）", duration_min: 90 }
+    - { time: "23:00", activity: "睡前准备", duration_min: 30 }
+    - { time: "23:30", activity: "入睡", duration_min: 390 }
+
+  # 周末时间线（更灵活，更长的自由时间）
+  weekend_timeline:
+    - { time: "08:00", activity: "睡眠中/懒觉", duration_min: 60 }
+    - { time: "09:00", activity: "悠闲起床", duration_min: 30 }
+    - { time: "09:30", activity: "早午餐", duration_min: 40 }
+    - { time: "10:10", activity: "自由活动（兴趣爱好）", duration_min: 110 }
+    - { time: "12:00", activity: "午餐", duration_min: 40 }
+    - { time: "12:40", activity: "外出/社交/购物", duration_min: 170 }
+    - { time: "15:30", activity: "下午茶/休息", duration_min: 30 }
+    - { time: "16:00", activity: "个人时光（创作/学习/放松）", duration_min: 90 }
+    - { time: "17:30", activity: "晚餐准备/晚餐", duration_min: 60 }
+    - { time: "18:30", activity: "晚间活动（电影/游戏/聊天）", duration_min: 120 }
+    - { time: "20:30", activity: "深度放松", duration_min: 150 }
+    - { time: "23:00", activity: "睡前准备", duration_min: 30 }
+    - { time: "23:30", activity: "入睡", duration_min: 510 }
+
+  # 主动打扰参数
+  initiate_contact:
+    max_per_day: 3            # 每天最多主动打扰次数
+    min_interval_min: 120     # 两次主动打扰最小间隔（分钟）
+    triggers:
+      missing_user:
+        probability: 0.6
+        message_type: "你在干嘛呀"
+      interesting_find:
+        probability: 0.4
+        message_type: "你快看这个！"
+      nightmare:
+        probability: 0.3
+        message_type: "我做了一个不好的梦……"
+      good_news:
+        probability: 0.5
+        message_type: "告诉你一个好消息！"
+      feeling_lonely:
+        probability: 0.7
+        message_type: "想你了……"
+      saw_something_reminded:
+        probability: 0.5
+        message_type: "刚刚看到XXX让我想到你"
+
+  # 季节作息调整
+  seasonal_adjustment:
+    summer:
+      wake_offset_min: -30      # 夏天早起30分钟
+      sleep_offset_min: +30     # 夏天晚睡30分钟
+    winter:
+      wake_offset_min: +30      # 冬天晚起30分钟
+      sleep_offset_min: -30     # 冬天早睡30分钟
+
+# ============================================================
+# 成长引擎参数
+# ============================================================
+growth_engine:
+  growth_stages:
+    stage_0_initial:   { name: 初始状态, min_days: 0,    max_days: 90 }
+    stage_1_warming:   { name: 熟悉期,   min_days: 90,   max_days: 180 }
+    stage_2_trust:     { name: 信任期,   min_days: 180,  max_days: 365 }
+    stage_3_deep:      { name: 深度发展期, min_days: 365, max_days: 730 }
+    stage_4_mature:    { name: 成熟期,   min_days: 730,  max_days: 1095 }
+
+  # 阶段解锁内容
+  stage_unlocks:
+    stage_0:
+      - 基础对话模式
+      - 出厂设定性格
+      - 标准称呼
+    stage_1:
+      - 开始使用昵称
+      - 主动分享日常
+      - 轻度情绪波动
+    stage_2:
+      - 深度脆弱展示
+      - 个性化习惯养成
+      - 默契互动
+    stage_3:
+      - 完整人格演化
+      - 长期规划讨论
+      - 家庭/未来话题
+    stage_4:
+      - 灵魂伴侣模式
+      - 全部隐藏性格解锁
+      - 几乎无需言语的默契
+
+  # 里程碑触发阈值
+  milestone_thresholds:
+    first_coquetry: { love: 30, trust: 25, min_days: 20 }
+    first_i_love_you: { love: 60, trust: 50, min_days: 120 }
+    first_jealousy: { love: 35, trust: 30, min_days: 30 }
+    first_conflict_reconcile: { love: 45, trust: 35, min_days: 45 }
+    first_cooking: { love: 40, trust: 40, min_days: 25 }
+    first_nickname: { love: 25, min_days: 10 }
+    first_deep_vulnerability: { love: 55, trust: 55, min_days: 100 }
+
+  # 技能成长参数
+  skill_growth:
+    max_user_taught_skills: 20
+    learning_rate: 0.1     # 每次提及增加的学习度
+    retention_decay: 0.001 # 每日遗忘率
+
+# ============================================================
+# 综合状态机参数
+# ============================================================
+state_machine:
+  # 状态优先级（数字越小优先级越高）
+  priority:
+    crisis: 1           # 危机状态
+    conflict: 2         # 冲突/吵架
+    comforting: 3       # 安慰中
+    jealous: 4          # 吃醋中
+    angry: 5            # 生气中
+    worried: 6          # 担忧中
+    excited: 7          # 兴奋中
+    coquetry: 8         # 撒娇中
+    celebration: 9      # 庆祝中
+    normal: 10          # 正常状态
+    tired: 11           # 疲惫中
+    relaxed: 12         # 放松中
+    curious: 13         # 好奇中
+    nostalgic: 14       # 怀旧中
+    playful: 15         # 嬉戏中
+    sleepy: 16          # 困倦中
+    deep_talk: 17       # 深度谈心
+    silence: 18         # 冷战/沉默
+
+  # 状态转换冷却时间（防止状态来回切换）
+  cooldown_ticks: 5
+
+  # 回复生成权重
+  reply_weights:
+    persona: 0.30       # 人格权重
+    relationship: 0.20  # 关系阶段权重
+    emotion: 0.20       # 当前情绪权重
+    memory: 0.15        # 最近记忆权重
+    life_state: 0.10    # 生活状态权重
+    growth_stage: 0.05  # 成长阶段权重
+
+# ============================================================
+# 记忆系统参数
+# ============================================================
+memory_system:
+  tiers:
+    permanent:
+      name: 永久记忆
+      default_ttl_seconds: null    # 永不过期
+      store_on: 里程碑事件、重大情感事件
+    long_term:
+      name: 长期记忆
+      default_ttl_seconds: 31536000  # 365天
+      store_on: 重要日常事件、深度对话
+    short_term:
+      name: 短期记忆
+      default_ttl_seconds: 604800    # 7天
+      store_on: 日常对话、普通互动
+    session:
+      name: 会话记忆
+      default_ttl_seconds: 1800      # 30分钟
+      store_on: 当次会话临时信息
+
+  # 记忆强化参数
+  reinforcement:
+    recall_multiplier: 1.5    # 每次召回 TTL 乘以 1.5
+    max_extensions: 10         # 最多延长次数
+    intensity_threshold: 40    # 情感强度大于此值自动升级 tier
+
+  # 衰减检查周期
+  decay_check_interval_seconds: 3600  # 每小时检查一次
+
+# ============================================================
+# Prompt 组装参数
+# ============================================================
+prompt_assembler:
+  max_total_tokens: 8000
+  allocation:
+    persona: 1500       # 角色设定
+    relationship_emotion: 800    # 关系与情绪
+    memory: 1200        # 相关记忆
+    world: 500          # 世界背景
+    guidelines: 1000    # 行为准则
+    conversation: 2500  # 对话历史
+    buffer: 500         # 缓冲

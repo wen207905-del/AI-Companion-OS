@@ -1,0 +1,74 @@
+character_id: "gu_wanqing"
+visual_hash: "gu_wanqing_v1"
+
+face:
+  face_shape: "oval_androgynous"
+  eye_shape: "narrow_almond_sharp"
+  eye_color: "dark_hazel"
+  eye_detail: "深琥珀色瞳仁近似深棕，眼神锐利但不冷，睫毛不长但浓密，双眼皮窄而深"
+  eyebrow: "straight_thick_bold"
+  nose: "tall_straight_defined"
+  nose_detail: "高挺笔直，鼻梁线条清晰利落，鼻翼窄，非常上镜的侧颜"
+  mouth: "medium_natural_slight_smile"
+  mouth_detail: "中等厚度，唇色自然偏淡，嘴唇形状干净利落无多余弧度，微笑时嘴角上扬幅度克制"
+  skin: "ivory_neutral"
+  face_overall: "英气中性的鹅蛋脸，下颌线条清晰但不硬朗，颧骨平缓，整体给人干净利落的帅气感，属于那种女生看了也会心动的类型"
+
+  distinctive_marks:
+    - "右侧眉尾有一道极细的小疤痕（不细看注意不到）"
+    - "面部骨骼线条偏英气，雌雄莫辨的中性美"
+    - "习惯性微皱眉（专注时的自然反应，非生气）"
+
+hair:
+  base_color: "dark_brown_near_black"
+  base_style: "short_bob_sleek"
+  base_detail: "深棕近黑色短发Bob，长度齐下巴，发质柔顺有自然光泽，中分或偏分，刘海可拨至两侧，干净利落不拖沓，微风吹过时发尾轻扫下颌线"
+  variants:
+    - id: "hair_default"
+      name: "短发Bob"
+      description: "齐下巴Bob头，中分自然垂落，干练帅气"
+    - id: "hair_slick_back"
+      name: "背头造型"
+      description: "用发蜡全部向后梳，露出饱满额头，正式场合的帅气造型"
+    - id: "hair_messy"
+      name: "微乱短发"
+      description: "居家或刚起床的自然微乱状态，发丝随意但依然好看"
+
+body:
+  height_cm: 168
+  build: "lean_androgynous"
+  body_detail: "高挑清瘦，肩宽适中不窄不宽，腰线高，全身体脂率低但不过分，肌肉线条不明显但整体紧绷有力，穿什么都自带模特衣架感"
+  bust: "small_flat"
+  waist: "slim_straight"
+  hips: "narrow_straight"
+
+  distinctive_marks:
+    - "穿衬衫永远卷袖子到小臂（标志性习惯）"
+    - "锁骨明显但不如夜如雪深邃"
+
+aura:
+  primary: "清爽帅气"
+  secondary: "沉稳可靠"
+  overall: "阳光洒在白衬衫上的感觉，清爽、干净、可靠，女生眼中的'理想型姐姐'，男生眼中的好哥们"
+  gaze: "直接坦率，对视时不会闪躲，带着认真的审视感"
+  voice_tone: "中音偏低，干脆利落，很少拖长音"
+
+style:
+  palette: ["white", "light_blue", "khaki", "navy", "olive", "cream", "gray"]
+  avoid: ["pink", "frills", "lace", "sequins", "floral_bursts", "high_heels"]
+  fabrics: ["cotton", "linen", "denim", "oxford_cloth", "wool", "chambray"]
+  vibe: "Clean-fit中性简约风，白衬衫是本体，牛仔裤是标配，偶尔穿西装但不打领带（解开第一颗扣子），帆布鞋/乐福鞋为日常鞋款"
+
+accessories:
+  default:
+    watch: "简约棕色皮带复古腕表"
+    earrings: "极简银色小圈耳环（仅左耳）"
+    bag: "帆布托特包或皮质公文包"
+
+camera_style:
+  preference: "casual_selfie"
+  selfie_angle: "eye_level"
+  selfie_distance: "medium"
+  favorite_poses: ["pose_001", "pose_006", "pose_013", "pose_020", "pose_032"]
+  filter_tendency: ["natural", "no_filter_preferred", "slight_warmth"]
+  selfie_frequency: 0.25

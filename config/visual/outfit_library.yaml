@@ -1,0 +1,591 @@
+# ============================================================
+# AI Companion OS — Outfit Library
+# 所有角色的服装资产库，每套带可直接用于图片生成的详细描述
+# ============================================================
+
+outfits:
+
+  - id: "outfit_001"
+    name: "白色连衣裙"
+    category: "dress"
+    season: ["spring", "summer"]
+    description: >
+      A pure white knee-length A-line dress with thin adjustable spaghetti straps,
+      a subtle sweetheart neckline, and delicate lace trim along the hem.
+      The fabric is lightweight cotton-linen blend with a soft matte texture,
+      cinched at the waist with a matching white fabric belt featuring a small
+      wooden buckle. Flows naturally in the breeze, giving an ethereal, innocent feel.
+    tags: ["white", "dress", "pure", "innocent", "summer", "casual_elegant"]
+
+  - id: "outfit_002"
+    name: "JK制服"
+    category: "uniform"
+    season: ["spring", "autumn"]
+    description: >
+      Classic Japanese school uniform (JK seifuku). A crisp navy blue sailor collar
+      with two white stripes, attached to a fitted white short-sleeve blouse.
+      The collar ties into a soft red ribbon bow at the front. Paired with a
+      high-waisted navy blue pleated skirt ending mid-thigh. White knee-high socks
+      and brown leather loafers complete the look. Clean, youthful, and disciplined.
+    tags: ["jk", "uniform", "school", "youthful", "navy", "white", "pleated_skirt"]
+
+  - id: "outfit_003"
+    name: "丝绸睡衣"
+    category: "sleepwear"
+    season: ["all"]
+    description: >
+      Luxurious two-piece silk pajama set in champagne ivory. The top is a relaxed-fit
+      long-sleeve button-down with a classic notched collar and pearl buttons,
+      while the matching trousers are straight-cut with an elastic waistband and
+      subtle satin piping along the side seams. The silk has a gentle sheen that
+      catches light softly. Effortlessly elegant loungewear.
+    tags: ["silk", "sleepwear", "elegant", "champagne", "ivory", "luxury", "lounge"]
+
+  - id: "outfit_004"
+    name: "泳衣"
+    category: "swimwear"
+    season: ["summer"]
+    description: >
+      A modest yet stylish one-piece swimsuit in deep navy blue, with a plunging
+      V-neckline crossed by thin straps, subtle ruching along the waist for
+      flattering silhouette, and a low scooped back. Made of matte stretch fabric
+      with UPF 50+ protection. Minimalist design with no excessive frills.
+    tags: ["swimwear", "one_piece", "navy", "summer", "minimalist", "beach"]
+
+  - id: "outfit_005"
+    name: "旗袍"
+    category: "traditional"
+    season: ["spring", "autumn", "summer"]
+    description: >
+      An elegant floor-length qipao (cheongsam) in deep midnight blue silk with
+      subtle silver embroidery of plum blossoms along the hem and right-side
+      mandarin collar. Slim-fitting silhouette with thigh-high side slits and
+      delicate frog-button closures. The silk drapes beautifully with a soft sheen.
+      Traditional sophistication with a modern edge.
+    tags: ["qipao", "cheongsam", "traditional", "silk", "elegant", "midnight_blue", "silver_embroidery"]
+
+  - id: "outfit_006"
+    name: "黑色西装套裙"
+    category: "business"
+    season: ["all"]
+    description: >
+      A sharp black business suit with a single-button tailored blazer featuring
+      peak lapels and subtle shoulder padding, worn over a crisp white silk
+      button-up blouse. The matching pencil skirt falls just below the knee with
+      a modest back vent for movement. Black 7cm stiletto heels and a minimalist
+      silver watch complete the commanding, authoritative presence.
+    tags: ["business", "suit", "black", "white_blouse", "pencil_skirt", "power", "professional"]
+
+  - id: "outfit_007"
+    name: "运动服"
+    category: "sportswear"
+    season: ["all"]
+    description: >
+      A matching athleisure set in dusty rose and charcoal gray. The top is a
+      high-neck racerback tank with built-in medium-support bra, featuring
+      moisture-wicking fabric with mesh ventilation panels on the back.
+      High-waisted 7/8 length leggings with a hidden waistband pocket and
+      subtle contour seam lines. Athletic yet feminine.
+    tags: ["sportswear", "athleisure", "active", "dusty_rose", "leggings", "gym"]
+
+  - id: "outfit_008"
+    name: "晚礼服"
+    category: "formal_dress"
+    season: ["all"]
+    description: >
+      A stunning floor-length evening gown in deep wine burgundy. The bodice is
+      a fitted corset-style with off-shoulder design, while the skirt cascades in
+      layers of lightweight chiffon with a thigh-high slit on the left side.
+      Subtle sparkling beadwork along the neckline. Paired with silver strappy
+      sandals. Red carpet elegance.
+    tags: ["evening_gown", "formal", "burgundy", "chiffon", "off_shoulder", "glamour"]
+
+  - id: "outfit_009"
+    name: "宽松卫衣+短裤"
+    category: "casual"
+    season: ["summer", "spring"]
+    description: >
+      An oversized heather gray pullover hoodie with a faded graphic print on
+      the chest, drop shoulders, and a generous kangaroo pocket. Worn with loose
+      black basketball shorts that hit just above the knee, white ankle socks,
+      and classic black-and-white skate shoes. The ultimate laid-back, effortless
+      casual look.
+    tags: ["hoodie", "shorts", "casual", "streetwear", "oversized", "relaxed", "skate"]
+
+  - id: "outfit_010"
+    name: "女仆装"
+    category: "cosplay_uniform"
+    season: ["all"]
+    description: >
+      A classic French maid costume with a fitted black dress featuring a sweetheart
+      neckline, short puffed sleeves, and a pristine white lace-trimmed apron tied
+      in a large bow at the back. The skirt is knee-length and slightly flared with
+      white lace petticoat peeking beneath. A white ruffled headband (maid headdress),
+      white knee-high stockings, and black Mary Jane heels complete the ensemble.
+    tags: ["maid", "cosplay", "uniform", "black_white", "lace", "apron", "service"]
+
+  - id: "outfit_011"
+    name: "水手服"
+    category: "uniform"
+    season: ["spring", "summer", "autumn"]
+    description: >
+      A bright white sailor-style top with a wide navy blue sailor collar featuring
+      two white parallel stripes, red necktie ribbon, and slightly flared short sleeves.
+      Worn with a navy blue pleated mini-skirt. White ankle socks with navy trim
+      and classic black school loafers. Youthful, bright, and classic Japanese school aesthetic.
+    tags: ["sailor", "uniform", "school", "navy", "white", "red_ribbon", "youthful"]
+
+  - id: "outfit_012"
+    name: "碎花裙"
+    category: "dress"
+    season: ["spring", "summer"]
+    description: >
+      A romantic midi-length dress covered in a tiny lavender wildflower print
+      on a soft cream background. Features a square neckline with thin ruffled
+      straps, a shirred elastic back panel for comfort, and a tiered ruffle hem
+      that sways gently with movement. Lightweight rayon fabric perfect for
+      sunny days. Gentle and feminine.
+    tags: ["floral", "dress", "romantic", "lavender", "cream", "midi", "feminine", "ruffle"]
+
+  - id: "outfit_013"
+    name: "露腰短上衣+高腰裤"
+    category: "casual_fashion"
+    season: ["spring", "summer"]
+    description: >
+      A cropped black ribbed-knit tank top ending just below the bust, showcasing
+      a toned midriff. Paired with high-waisted wide-leg trousers in pale sand beige,
+      featuring a paper-bag waist with a matching fabric belt. The trousers pool
+      slightly at the hem over platform sneakers. Confident, trendy street-style.
+    tags: ["cropped", "midriff", "high_waist", "wide_leg", "trendy", "street_style", "black", "beige"]
+
+  - id: "outfit_014"
+    name: "娃娃衫+背带裤"
+    category: "casual_cute"
+    season: ["spring", "autumn"]
+    description: >
+      A soft cream puff-sleeve blouse with a round Peter Pan collar and tiny
+      embroidered strawberries on the chest, tucked into light-wash denim
+      overalls with adjustable straps and rolled cuffs. White canvas sneakers
+      with strawberry-pattern socks peeking out. Sweet, playful, and innocent.
+    tags: ["puff_sleeve", "overalls", "denim", "cream", "strawberry", "cute", "playful", "sweet"]
+
+  - id: "outfit_015"
+    name: "白衬衫+牛仔裤"
+    category: "casual"
+    season: ["all"]
+    description: >
+      A crisp oversized white cotton button-down shirt, slightly sheer, with the
+      top two buttons undone and sleeves rolled up to the elbows. Tucked loosely
+      into high-waisted straight-leg medium-wash jeans with a brown leather belt.
+      Simple silver hoop earrings and white low-top sneakers. Effortlessly chic,
+      boyish charm with feminine grace.
+    tags: ["white_shirt", "jeans", "casual", "effortless", "classic", "minimalist", "boyish_chic"]
+
+  - id: "outfit_016"
+    name: "黑色蕾丝连衣裙"
+    category: "dress"
+    season: ["all"]
+    description: >
+      A form-fitting black midi dress made entirely of intricate floral lace over
+      a nude lining. Long sheer lace sleeves, a high neckline, and a scalloped
+      lace hem. The silhouette is slim and elegant with a concealed back zipper.
+      Dark, mysterious, and deeply feminine with gothic undertones.
+    tags: ["black", "lace", "gothic", "elegant", "mysterious", "slim", "feminine", "dark"]
+
+  - id: "outfit_017"
+    name: "洛丽塔洋装"
+    category: "lolita"
+    season: ["spring", "autumn", "winter"]
+    description: >
+      An elaborate sweet Lolita dress in pastel lavender with white lace trim.
+      The bodice is fitted with ribbon corset lacing, while the bell-shaped skirt
+      has multiple layers of ruffled petticoats underneath creating volume.
+      White knee-high lace socks, lavender Mary Jane heels with bow clips, and
+      a matching lavender headbow with pearl details. Fairy-tale princess aesthetic.
+    tags: ["lolita", "sweet_lolita", "pastel", "lavender", "ruffle", "petticoat", "bow", "fairy_tale"]
+
+  - id: "outfit_018"
+    name: "围裙居家装"
+    category: "homewear"
+    season: ["all"]
+    description: >
+      A cozy home outfit: a soft cream cable-knit turtleneck sweater paired with
+      comfortable navy linen trousers. Over this, a classic beige linen half-apron
+      with a front pocket tied around the waist. Barefoot or in fuzzy house slippers.
+      Warm, domestic, nurturing atmosphere.
+    tags: ["homewear", "apron", "knit", "cream", "cozy", "domestic", "nurturing", "warm"]
+
+  - id: "outfit_019"
+    name: "高领毛衣+铅笔裙"
+    category: "business_casual"
+    season: ["autumn", "winter"]
+    description: >
+      A fitted charcoal gray cashmere turtleneck, sleek and form-hugging,
+      tucked into a knee-length black wool pencil skirt with a modest back slit.
+      Dark sheer tights and black leather pointed-toe pumps. A pearl brooch
+      on the left collar. Sophisticated, intellectual, cold-season elegance.
+    tags: ["turtleneck", "cashmere", "pencil_skirt", "black", "charcoal", "winter", "sophisticated", "intellectual"]
+
+  - id: "outfit_020"
+    name: "针织开衫+碎花裙"
+    category: "casual_feminine"
+    season: ["spring", "autumn"]
+    description: >
+      A chunky oatmeal-colored knit cardigan, open at the front with wooden toggle
+      buttons, worn over a delicate floral print midi dress in dusty blue with
+      tiny white daisies. Brown leather ankle boots. Soft, layered, cozy feminine.
+    tags: ["cardigan", "floral", "layered", "cozy", "feminine", "oatmeal", "blue", "autumn"]
+
+  - id: "outfit_021"
+    name: "宽松T恤+大裤衩"
+    category: "casual"
+    season: ["summer"]
+    description: >
+      A well-worn oversized black graphic t-shirt with a faded band logo, paired
+      with knee-length loose-fitting khaki cargo shorts with multiple pockets.
+      Flip-flops or worn-in sneakers. Utterly relaxed, no-effort guy-next-door look.
+    tags: ["t_shirt", "cargo_shorts", "casual", "relaxed", "summer", "graphic_tee", "effortless"]
+
+  - id: "outfit_022"
+    name: "黑风衣+皮靴"
+    category: "outerwear"
+    season: ["autumn", "winter"]
+    description: >
+      A dramatic full-length black trench coat in water-resistant cotton gabardine,
+      double-breasted with shoulder epaulets, storm flaps, and a buckled waist belt.
+      Worn open over a simple black top and dark skinny jeans. Black leather
+      knee-high combat boots with chunky lug soles. Edgy, commanding, street-ready.
+    tags: ["trench_coat", "black", "combat_boots", "edgy", "dramatic", "winter", "street_style"]
+
+  - id: "outfit_023"
+    name: "棉麻连衣裙"
+    category: "dress"
+    season: ["spring", "summer"]
+    description: >
+      A relaxed-fit midi dress in natural undyed linen, with a simple round
+      neckline, three-quarter sleeves, and a loose A-line silhouette. No
+      embellishments — pure texture and drape. Earthy tan color with natural
+      slub variations in the fabric. Paired with leather sandals. Zen, minimalist,
+      and grounded.
+    tags: ["linen", "natural", "minimalist", "earthy", "zen", "midi", "sustainable", "summer"]
+
+  - id: "outfit_024"
+    name: "校服"
+    category: "uniform"
+    season: ["all"]
+    description: >
+      A standard Chinese-style school uniform: a white short-sleeve polo with
+      navy blue trim on the collar and sleeve cuffs, tucked into navy blue
+      wide-leg uniform trousers. A small embroidered school emblem on the left
+      chest. White sneakers with ankle socks. Orderly, youthful, everyday student life.
+    tags: ["school_uniform", "polo", "navy", "white", "student", "youthful", "everyday"]
+
+  - id: "outfit_025"
+    name: "浴衣/和服"
+    category: "traditional"
+    season: ["summer"]
+    description: >
+      A lightweight cotton yukata in soft pale pink with a large ume (plum blossom)
+      print in deep crimson scattered across the fabric. Wrapped left over right,
+      secured with a bright red hanhaba obi tied in a butterfly bow at the back.
+      Wooden geta sandals and hair styled up with a simple kanzashi flower pin.
+      Traditional Japanese summer elegance.
+    tags: ["yukata", "kimono", "traditional", "japanese", "pink", "ume", "summer", "geta"]
+
+  - id: "outfit_026"
+    name: "西装+西裤"
+    category: "business_formal"
+    season: ["all"]
+    description: >
+      A perfectly tailored three-piece pantsuit in dark charcoal gray pinstripe
+      wool. The single-breasted blazer has narrow notch lapels and a single
+      closure, worn over a matching fitted waistcoat. Wide-leg trousers with a
+      sharp center crease. White poplin shirt with French cuffs and silver cufflinks.
+      Black oxford heels. Absolute boardroom authority.
+    tags: ["pantsuit", "three_piece", "pinstripe", "charcoal", "formal", "power", "wool", "authority"]
+
+  - id: "outfit_027"
+    name: "蓬蓬裙+泡泡袖"
+    category: "dress_cute"
+    season: ["spring", "summer"]
+    description: >
+      A dreamy baby pink dress with voluminous short puff sleeves with elastic
+      cuffs, a square neckline with a small satin bow at the center, and a
+      dramatically puffy gathered skirt that flares out to a tea length. Made
+      of crisp cotton poplin with built-in tulle underskirt for structure.
+      White ballet flats. Pure princess sweetness.
+    tags: ["puff_dress", "pink", "babydoll", "princess", "puffy_skirt", "cute", "sweet", "cotton"]
+
+  - id: "outfit_028"
+    name: "吊带+短裙"
+    category: "casual_sexy"
+    season: ["summer"]
+    description: >
+      A silky black camisole top with thin adjustable straps and a delicate lace
+      trim along the V-neckline, tucked into a high-waisted black faux-leather
+      mini skirt with an asymmetric hem. Bare legs, black ankle-strap stilettos.
+      A silver chain necklace. Confident, bold, night-out energy.
+    tags: ["camisole", "mini_skirt", "leather", "black", "night_out", "sexy", "confident", "summer"]
+
+  - id: "outfit_029"
+    name: "运动bra+瑜伽裤"
+    category: "sportswear"
+    season: ["all"]
+    description: >
+      A matching workout set: a medium-support strappy-back sports bra in
+      heathered teal, with a cross-back detail and removable pads. Full-length
+      high-waisted yoga leggings in matching teal with a subtle honeycomb
+      texture and squat-proof fabric. Bare midriff. Clean white training shoes.
+      Ready for the gym or a run.
+    tags: ["sports_bra", "yoga", "leggings", "teal", "active", "fitness", "gym", "matching_set"]
+
+  - id: "outfit_030"
+    name: "真丝吊带睡裙"
+    category: "sleepwear"
+    season: ["summer"]
+    description: >
+      A slinky full-length silk slip dress in midnight black with delicate lace
+      trim at the deep V-neckline and hem. Thin spaghetti straps cross delicately
+      over the back. The bias-cut silk drapes fluidly over the body, catching
+      candlelight. Sensual, luxurious, and deeply private.
+    tags: ["silk", "slip_dress", "sleepwear", "black", "lace", "sensual", "luxury", "night"]
+
+  - id: "outfit_031"
+    name: "毛绒睡衣"
+    category: "sleepwear"
+    season: ["winter"]
+    description: >
+      An adorable fluffy one-piece pajama set (kigurumi style) in soft blush
+      pink fleece with a hood featuring rounded bear ears. The zip-up front
+      is easy to slip into, and the oversized fit is incredibly cozy. Plush
+      fabric feels like a warm hug. Barefoot with fuzzy socks. Winter comfort.
+    tags: ["fleece", "kigurumi", "pajamas", "pink", "cozy", "winter", "cute", "fluffy"]
+
+  - id: "outfit_032"
+    name: "休闲帽衫+牛仔裤"
+    category: "casual"
+    season: ["spring", "autumn", "winter"]
+    description: >
+      A comfortable unisex look: a forest green pullover hoodie with a front
+      kangaroo pocket and drawstring hood, slightly oversized, paired with
+      classic blue straight-cut jeans and white sneakers. Simple silver stud
+      earrings. Universal, approachable, everyday casual.
+    tags: ["hoodie", "jeans", "unisex", "casual", "green", "everyday", "comfortable", "universal"]
+
+  - id: "outfit_033"
+    name: "格子衬衫+短裤"
+    category: "casual"
+    season: ["summer"]
+    description: >
+      A red-and-black buffalo plaid flannel shirt worn open over a plain white
+      cropped tank top, sleeves rolled to mid-forearm. High-waisted distressed
+      denim shorts with frayed hems. Ankle socks with black high-top Converse.
+      Casual, slightly punk, effortless summer energy.
+    tags: ["plaid", "flannel", "shorts", "punk", "casual", "summer", "converse", "red_black"]
+
+  - id: "outfit_034"
+    name: "汉服"
+    category: "traditional"
+    season: ["spring", "autumn"]
+    description: >
+      A traditional Chinese hanfu set in celadon green with flowing wide sleeves
+      and layered cross-collar design. The top (ruqun) is a fitted wrap with
+      intricate gold embroidery of clouds and cranes along the collar and cuffs.
+      The skirt is a high-waisted floor-length wrap skirt in gradient celadon
+      to white, secured with a decorative silk sash. Hair styled with a simple
+      jade hairpin. Ancient elegance, timeless grace.
+    tags: ["hanfu", "traditional", "chinese", "celadon", "gold_embroidery", "flowing", "ancient", "elegance"]
+
+  - id: "outfit_035"
+    name: "比基尼"
+    category: "swimwear"
+    season: ["summer"]
+    description: >
+      A sleek two-piece triangle bikini in solid matte black, with adjustable
+      halter neck ties and sliding triangle cups. The bottoms are low-rise with
+      moderate coverage and side-tie details. Minimalist with no padding or
+      underwire. Simple, confident, beach-ready.
+    tags: ["bikini", "swimwear", "black", "minimalist", "beach", "summer", "triangle"]
+
+  - id: "outfit_036"
+    name: "高领连衣裙"
+    category: "dress"
+    season: ["autumn", "winter"]
+    description: >
+      A sleek, form-fitting midi dress in deep navy blue, featuring a high
+      mock-neck collar, full-length slim sleeves, and a modest side slit.
+      The ribbed knit fabric has a subtle sheen and hugs every contour
+      elegantly. No embellishments — pure silhouette. Paired with black
+      pointed-toe ankle boots. Cold, refined, untouchable.
+    tags: ["knit_dress", "mock_neck", "navy", "slim", "refined", "winter", "minimalist"]
+
+  - id: "outfit_037"
+    name: "蕾丝上衣+高腰裙"
+    category: "elegant_dark"
+    season: ["all"]
+    description: >
+      A sheer black long-sleeve lace blouse with a high ruffled Victorian
+      collar, worn over a black camisole. Tucked into a high-waisted wine
+      red velvet maxi skirt with a subtle fishtail hem. Black suede pumps.
+      Dark romance with a gothic undertone.
+    tags: ["lace", "velvet", "victorian", "gothic", "dark_romance", "wine_red", "elegant"]
+
+  - id: "outfit_038"
+    name: "格子围裙+女仆装变体"
+    category: "cosplay_uniform"
+    season: ["all"]
+    description: >
+      A playful variation of the maid costume: a navy blue dress with a
+      contrasting white Peter Pan collar and short puff sleeves, worn with
+      a red gingham-check half-apron tied in a perky bow. White knee socks
+      with a tiny embroidered heart on the cuff, black Mary Jane shoes.
+      Cheerful, service-oriented, cafe-style maid.
+    tags: ["maid", "gingham", "cafe", "navy", "red_apron", "cheerful", "cosplay"]
+
+  - id: "outfit_039"
+    name: "短款针织+阔腿裤"
+    category: "casual_fashion"
+    season: ["spring", "autumn"]
+    description: >
+      A cropped pale gray cashmere crewneck sweater ending at the ribcage,
+      paired with high-waisted wide-leg tailored trousers in creamy ivory
+      with a fluid drape. Gold hoop earrings and strappy nude sandals.
+      Warm-toned, chic, effortless model-off-duty look.
+    tags: ["cashmere", "cropped", "wide_leg", "chic", "gray", "ivory", "model_off_duty", "effortless"]
+
+  - id: "outfit_040"
+    name: "白色衬衫裙"
+    category: "dress"
+    season: ["spring", "summer"]
+    description: >
+      A crisp white cotton poplin shirt dress, midi length, with a classic
+      pointed collar, full button placket, and a detachable self-fabric belt
+      cinching the waist. Rolled three-quarter sleeves. The hem has a subtle
+      high-low cut. Clean, fresh, and impossibly elegant in its simplicity.
+    tags: ["shirt_dress", "white", "cotton", "clean", "minimalist", "elegant", "summer"]
+
+  - id: "outfit_041"
+    name: "牛仔外套+碎花裙"
+    category: "casual_feminine"
+    season: ["spring", "autumn"]
+    description: >
+      A light-wash oversized denim jacket with silver button details, worn
+      unbuttoned over a mini floral-print dress in pale yellow with tiny
+      white daisies. The dress has a ruched bodice and flutter sleeves.
+      White ankle socks with lace trim, pastel pink canvas sneakers.
+      Youthful, sweet, and slightly retro.
+    tags: ["denim_jacket", "floral_dress", "youthful", "retro", "yellow", "spring", "sweet"]
+
+  - id: "outfit_042"
+    name: "黑色哥特裙装"
+    category: "gothic"
+    season: ["all"]
+    description: >
+      An elaborate gothic Lolita dress in jet black with deep purple
+      undertones. The bodice is a corset-laced vest over a ruffled black
+      blouse with bishop sleeves. The skirt is a high-low asymmetrical
+      tiered design with black lace overlays and subtle silver pentagram
+      charms hanging from the waist chain. Black platform boots with
+      multiple buckle straps. Dark, dramatic, and unapologetically gothic.
+    tags: ["gothic", "lolita", "black", "corset", "platform_boots", "dark", "dramatic", "silver_charms"]
+
+  - id: "outfit_043"
+    name: "居家浴袍"
+    category: "homewear"
+    season: ["all"]
+    description: >
+      A plush white terry-cloth bathrobe, knee-length, with a shawl collar,
+      thick tie belt, and deep front pockets. Slightly oversized for supreme
+      comfort. Worn with hair loosely tied up in a messy bun. Bare feet on
+      a soft rug. Post-shower relaxation, intimate domesticity.
+    tags: ["bathrobe", "terrycloth", "white", "cozy", "home", "relaxation", "intimate"]
+
+  - id: "outfit_044"
+    name: "校园运动服"
+    category: "uniform_sport"
+    season: ["spring", "autumn"]
+    description: >
+      A classic school tracksuit in navy blue with white contrast stripes
+      running down the sleeves and pant legs. The jacket is a zip-up with
+      a stand collar. The pants are straight-cut with elastic ankle cuffs.
+      A school logo printed on the left chest. White athletic shoes.
+      Energetic, team-spirited, student athlete vibe.
+    tags: ["tracksuit", "school", "sports", "navy", "white_stripes", "team", "youthful"]
+
+  - id: "outfit_045"
+    name: "海魂衫+白色短裤"
+    category: "casual"
+    season: ["summer"]
+    description: >
+      A classic Breton striped long-sleeve tee in navy and white horizontal
+      stripes, slightly oversized, half-tucked into crisp white linen shorts
+      ending mid-thigh. Espadrille sandals and a straw sun hat. Maritime,
+      breezy, effortlessly charming summer look.
+    tags: ["breton", "stripes", "nautical", "white_shorts", "summer", "straw_hat", "breezy", "charming"]
+
+  - id: "outfit_046"
+    name: "皮革外套+紧身裤"
+    category: "street_edgy"
+    season: ["autumn", "winter"]
+    description: >
+      A cropped black genuine leather moto jacket with asymmetric zip closure,
+      silver hardware, and notched lapels. Worn over a simple gray tank top
+      with charcoal black coated skinny jeans and black pointed-toe sock boots.
+      A silver chain choker. Rock-and-roll edge meets high-fashion polish.
+    tags: ["leather_jacket", "moto", "black", "skinny_jeans", "rocker", "edgy", "street", "silver"]
+
+  - id: "outfit_047"
+    name: "纯白连衣裙草帽"
+    category: "dress"
+    season: ["summer"]
+    description: >
+      A dreamy ankle-length white sundress in lightweight cotton voile with
+      a gathered empire waist, flutter cap sleeves, and delicate eyelet lace
+      embroidery along the tiered hem. A wide-brimmed straw sun hat with a
+      pale blue ribbon band. Barefoot in the grass or white flat sandals.
+      Sun-drenched meadow innocence.
+    tags: ["sundress", "white", "eyelet_lace", "straw_hat", "meadow", "innocent", "summer", "dreamy"]
+
+  - id: "outfit_048"
+    name: "深蓝长裙"
+    category: "dress"
+    season: ["all"]
+    description: >
+      A floor-length deep sapphire blue column dress with a high neckline,
+      sleeveless cut, and a dramatic open back that dips to the lower spine.
+      The heavy crepe fabric drapes in clean, elegant folds. A thin gold
+      chain necklace that hangs down the exposed back. Understated,
+      devastatingly elegant, awards-ceremony worthy.
+    tags: ["column_dress", "sapphire", "open_back", "elegant", "formal", "crepe", "gold_chain", "minimalist"]
+
+  - id: "outfit_049"
+    name: "粉色针织+白裙"
+    category: "casual_cute"
+    season: ["spring", "autumn"]
+    description: >
+      A soft baby pink fine-knit cashmere crewneck sweater, slightly cropped,
+      with ribbed hem and cuffs. Worn with a white tulle midi skirt that has
+      multiple layers of soft netting for a subtle princess volume. Ballet
+      pink satin flats. Delicate, sweet, fairy-like softness.
+    tags: ["cashmere", "pink", "tulle_skirt", "ballet", "fairy", "sweet", "soft", "feminine"]
+
+  - id: "outfit_050"
+    name: "大号篮球衫"
+    category: "casual"
+    season: ["all"]
+    description: >
+      An authentic extra-large basketball jersey in bright red with white
+      numbering (double-zero) and lettering on the chest and back, made of
+      lightweight mesh fabric. The armholes are cut deep, revealing a
+      charcoal tank top underneath. Worn with baggy black basketball shorts
+      that end below the knee, white crew socks pulled up, and high-top
+      basketball sneakers (Jordan-style). A black sweatband on the wrist.
+      Athletic, confident, streetball energy.
+    tags: ["basketball", "jersey", "athletic", "oversized", "red", "streetball", "sneakers", "confident"]
+
+# ============================================================
+# Metadata
+# ============================================================
+total_outfits: 50
+version: "1.0.0"
+last_updated: "2026-06-26"

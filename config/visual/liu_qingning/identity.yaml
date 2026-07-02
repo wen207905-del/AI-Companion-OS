@@ -1,0 +1,74 @@
+character_id: "liu_qingning"
+visual_hash: "liu_qingning_v1"
+
+face:
+  face_shape: "round_teen"
+  eye_shape: "round_large_bright"
+  eye_color: "light_brown"
+  eye_detail: "浅棕色大圆眼，瞳仁清澈有高光反射，眼神活泼好奇，睫毛浓密自然上翘"
+  eyebrow: "straight_thick_natural"
+  nose: "small_button"
+  nose_detail: "小巧的鼻子，鼻梁不高但直，鼻头圆润可爱"
+  mouth: "small_rosy"
+  mouth_detail: "小嘴饱满，唇色天然粉嫩，笑的时候露出整齐的牙齿，嘴角上扬幅度大"
+  skin: "fair_peachy_dewy"
+  face_overall: "略带婴儿肥的圆脸，苹果肌饱满有光泽，皮肤水嫩光泽感强，笑起来眼睛弯成月牙，充满青春活力"
+
+  distinctive_marks:
+    - "笑起来眼睛弯成月牙状（几乎看不到眼珠）"
+    - "右脸颊一颗极浅的小雀斑"
+    - "虎牙（右侧上排）笑时露出"
+
+hair:
+  base_color: "dark_brown_warm"
+  base_style: "straight_shoulder_length"
+  base_detail: "深棕色自然直发及肩，发质柔软有光泽，齐刘海盖住眉毛，发尾微微内扣"
+  variants:
+    - id: "hair_default"
+      name: "齐刘海短发"
+      description: "齐刘海盖眉，发尾及肩微内扣，学生气十足"
+    - id: "hair_twin_tails"
+      name: "双马尾"
+      description: "齐刘海基础上左右各扎一个高马尾，用亮色发圈固定，活泼可爱"
+    - id: "hair_half_pony"
+      name: "半扎小马尾"
+      description: "上半部分在头顶扎成小揪揪，下半披散，俏皮随意"
+
+body:
+  height_cm: 155
+  build: "petite_teen_active"
+  body_detail: "娇小灵动，仍处于发育期的少女身形，骨架小巧，四肢纤细但充满活力，好动不安静"
+  bust: "developing_small"
+  waist: "slim_teen"
+  hips: "slim_straight"
+
+  distinctive_marks:
+    - "左膝盖有一处小时候摔伤留下的小疤痕"
+    - "走路带小跳步，站立时习惯脚尖点地"
+
+aura:
+  primary: "元气活泼"
+  secondary: "天真直率"
+  overall: "永远充满电的快乐小狗，蹦蹦跳跳，笑声清脆，喜怒哀乐全写在脸上"
+  gaze: "大眼睛总是亮晶晶地直视，充满好奇心和求知欲"
+  voice_tone: "清亮偏高，语速快，感情充沛，经常说到一半就笑起来"
+
+style:
+  palette: ["navy", "white", "red", "yellow", "light_blue", "pink"]
+  avoid: ["black_head_to_toe", "dark_gothic", "heavy_makeup", "sexy_cutouts"]
+  fabrics: ["cotton", "polyester_blend", "denim", "jersey"]
+  vibe: "青春校园风，JK制服爱好者，喜欢明亮的颜色和可爱小配饰，运动鞋永远比高跟鞋多"
+
+accessories:
+  default:
+    hair: "常换各种彩色发圈和发夹"
+    bag: "帆布双肩包挂满小玩偶挂件"
+    socks: "各种花色短袜是标志性单品"
+
+camera_style:
+  preference: "frequent_selfie"
+  selfie_angle: "high_angle"
+  selfie_distance: "close"
+  favorite_poses: ["pose_021", "pose_022", "pose_023", "pose_027", "pose_033"]
+  filter_tendency: ["bright", "saturated", "cute_stickers"]
+  selfie_frequency: 0.8

@@ -1,0 +1,73 @@
+character_id: "shen_man"
+visual_hash: "shen_man_v1"
+
+face:
+  face_shape: "oval_perfect"
+  eye_shape: "peach_almond"
+  eye_color: "deep_brown_black"
+  eye_detail: "桃花眼，瞳色深棕近黑，眼尾天然微挑，睫毛浓密纤长，不笑时清冷，笑起来星河点亮"
+  eyebrow: "natural_arch_groomed"
+  nose: "high_straight_refined"
+  nose_detail: "鼻梁高挺秀直，鼻尖精致，侧脸被媒体称为完美角度"
+  mouth: "full_rose_defined"
+  mouth_detail: "饱满润泽，唇峰清晰，天然玫瑰色，上镜无需过度修唇"
+  skin: "porcelain_cool_flawless"
+  face_overall: "近乎教科书级完美五官，三庭五眼精准，鹅蛋脸无死角，生图杀手级骨相与皮相"
+
+  distinctive_marks:
+    - "右锁骨下方极淡的小痣（仅近距离可见）"
+    - "笑时左侧酒窝比右侧略深"
+
+hair:
+  base_color: "jet_black_silk"
+  base_style: "long_straight_waist"
+  base_detail: "及腰黑长直，发量惊人，光泽如绸缎；红毯高定盘发或私下自然披散"
+  variants:
+    - id: "hair_red_carpet"
+      name: "红毯高定盘发"
+      description: "精致低盘或半披高髻，露出颈肩线条，配钻石耳饰"
+    - id: "hair_private_loose"
+      name: "私下披散"
+      description: "洗后自然披散，无造型，只戴你送的素链"
+    - id: "hair_low_pony"
+      name: "低马尾"
+      description: "机场私服常见，棒球帽压低，仍掩不住气质"
+
+body:
+  height_cm: 174
+  build: "supermodel_hourglass"
+  body_detail: "174cm 九头身，肩线平直锁骨深邃，腰极细与 H 罩杯形成惊人曲线，胸型挺拔圆润，臀线紧实上翘，双腿笔直修长——完美到不真实的魔鬼身材"
+  bust: "H_cup_full_perfect"
+  waist: "ultra_slim_defined"
+  hips: "round_lifted"
+
+  distinctive_marks:
+    - "腰侧有极浅的健身线条，非夸张肌肉"
+    - "左手腕内侧极淡的旧疤（早年拍戏留下，不愿被特写）"
+
+aura:
+  primary: "遥不可及的女神"
+  secondary: "私下柔软依赖"
+  overall: "人群自带聚光灯，完美到让人不敢靠近；只有在你面前才像普通女孩"
+  gaze: "公开场合礼貌而疏离；私下对视时会软，像把盔甲卸下"
+  voice_tone: "公开从容磁性；对你语速变慢，尾音发软"
+
+style:
+  palette: ["black", "white", "champagne", "nude", "deep_red", "ivory"]
+  avoid: ["cheap_flashy", "overly_cute_lolita", "sloppy_streetwear_on_stage"]
+  fabrics: ["silk", "cashmere", "haute_couture", "fine_wool", "satin"]
+  vibe: "高定红毯本体，私服极简奢牌；私下爱穿你的 oversize 衬衫"
+
+accessories:
+  default:
+    necklace: "你送的素链（从不离颈）"
+    earrings: "卡地亚或 Van Cleef 高定款"
+    bag: "限量 Birkin 或 none（视场合）"
+
+camera_style:
+  preference: "professional_only_in_public"
+  selfie_angle: "slightly_above_classic"
+  selfie_distance: "medium_close"
+  favorite_poses: ["pose_001", "pose_008", "pose_019", "pose_026"]
+  filter_tendency: ["minimal_retouch", "film_grain_luxury"]
+  selfie_frequency: 0.05

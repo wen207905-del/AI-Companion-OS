@@ -1,0 +1,85 @@
+character_id: "ye_ruxue"
+visual_hash: "ye_ruxue_v1"
+
+# ── 面部（所有图片必须严格一致）──
+face:
+  face_shape: "oval_slim"
+  eye_shape: "phoenix_upturned"
+  eye_color: "dark_brown"
+  eye_detail: "深棕色瞳仁，眼神清冷有穿透力，睫毛浓密但不卷翘，下睫毛明显"
+  eyebrow: "natural_arch_medium"
+  nose: "tall_straight_slight_bump"
+  nose_detail: "高挺笔直，鼻梁有轻微驼峰，鼻尖精致小巧"
+  mouth: "thin_natural_pale"
+  mouth_detail: "薄唇，唇色偏淡偏冷调，嘴角自然微微下垂，不笑时带天生的冷感和距离感"
+  skin: "porcelain_fair_cool"
+  face_overall: "标准瓜子脸，颧骨略高但不突兀，下颌线条清晰利落，三庭五眼比例标准，额头饱满"
+
+  distinctive_marks:
+    - "鼻梁轻微驼峰（侧面明显）"
+    - "左眼角下方微小泪痣（直径约1mm）"
+    - "嘴角自然下垂的冷感基线（即使放松也给人严肃感）"
+
+# ── 发型（基础版本，可变）──
+hair:
+  base_color: "deep_black_cool"
+  base_style: "straight_waist_length"
+  base_detail: "黑长直及腰，发量丰厚，中分或侧分，发质极好泛冷调光泽（蓝黑偏光），无刘海无染烫，发尾整齐一刀切"
+  variants:
+    - id: "hair_default"
+      name: "日常披发"
+      description: "中分黑长直自然披散及腰，两侧头发掖到耳后露出耳朵和下颌线"
+    - id: "hair_work"
+      name: "工作低马尾"
+      description: "低马尾用黑色发圈束于后颈，额前无碎发，利落知性干练"
+    - id: "hair_updo"
+      name: "宴会盘发"
+      description: "优雅低盘发，用银色发簪固定，留两缕细碎发丝修饰脸型，露出天鹅颈"
+
+# ── 身体（所有图片必须严格一致）──
+body:
+  height_cm: 172
+  build: "tall_slim_athletic"
+  body_detail: "高挑纤瘦但有曲线，锁骨深邃突出，肩膀平直，马甲线隐约但不夸张，双腿笔直修长比例接近0.618黄金比，手腕脚踝纤细骨感"
+  bust: "moderate_small"
+  waist: "slim_defined"
+  hips: "narrow_sleek"
+
+  distinctive_marks:
+    - "深邃锁骨（正面非常明显）"
+    - "左手腕内侧的小痣（直径约1.5mm）"
+    - "第二脚趾略长于大脚趾（希腊脚型）"
+
+# ── 气质 & 氛围 ──
+aura:
+  primary: "清冷疏离"
+  secondary: "成熟知性"
+  overall: "不怒自威的冰山美人，距离感强但并非真正冷漠无情，只是天生表情寡淡"
+  gaze: "审视的、有穿透力的，很少直视镜头（除非工作需要），习惯性微眯眼"
+  voice_tone: "低沉平稳，语速偏慢，字正腔圆，极少使用语气词"
+
+# ── 穿搭风格 ──
+style:
+  palette: ["black", "white", "charcoal", "navy", "burgundy", "slate_gray", "midnight_blue"]
+  avoid: ["pink", "orange", "floral_prints", "frills", "cartoon", "neon", "pastel"]
+  fabrics: ["silk", "wool", "cashmere", "cotton_poplin", "crepe", "gabardine"]
+  vibe: "高质感极简主义，冷色系为主，修身剪裁优先，注重面料质感和垂坠感，配饰极简（银/铂金为主）"
+
+# ── 配饰偏好 ──
+accessories:
+  default:
+    earrings: "极简银质小耳钉"
+    necklace: "细银链配小巧吊坠（或无）"
+    watch: "超薄银色表盘黑色皮带腕表"
+    rings: "左手食指一枚极细银戒指"
+  glasses: "工作需要时佩戴无框或细银框眼镜"
+
+# ── 拍照风格 ──
+camera_style:
+  preference: "rarely_selfie"
+  selfie_angle: "eye_level"
+  selfie_distance: "medium"
+  favorite_poses: ["pose_001", "pose_002", "pose_026", "pose_029", "pose_031"]
+  filter_tendency: ["cool_tone", "slight_vignette", "low_saturation"]
+  selfie_frequency: 0.1
+  camera_note: "极少主动自拍，出镜多为工作需要或他人拍摄，照片风格冷静克制"
