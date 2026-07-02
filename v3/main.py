@@ -159,10 +159,15 @@ def create_app(enable_phase2: bool = True):
         global _world_tick, _db
 
         from .world.world_tick import WorldTick
+        from v3.runtime.runtime_state import RuntimeState
 
         _db = V3Database()
         init_database(_db)
         register_default_characters(_db)
+
+        # 初始化 Runtime State
+        rt = RuntimeState.get_instance()
+        rt.life_loop_status = "initializing"
 
         _world_tick = WorldTick(
             db=_db,
@@ -173,7 +178,26 @@ def create_app(enable_phase2: bool = True):
         _world_tick.db.connect()
         _world_tick.db.create_tables()
         _world_tick.start()
-        print("[V3] WorldTick 已启动（APScheduler 模式）")
+
+        rt.life_loop_status = "running"
+        rt.uptime_start = time.time()
+        print("[V3] WorldTick 已启动（APScheduler + Runtime Scheduler 模式）")
+
+        # 初始化 V4 Scheduler（三层调度）
+        try:
+            from v3.runtime.scheduler import V4Scheduler
+            from v3.runtime.event_bus import EventBus
+
+            bus = EventBus.get_instance()
+            v4_scheduler = V4Scheduler(
+                event_bus=bus,
+                world_tick=_world_tick,
+                db=_db,
+            )
+            v4_scheduler.start()
+            print("[V3] V4 Scheduler 已启动（1min / 5min / 每日0点）")
+        except Exception as e:
+            print(f"[V3] V4 Scheduler 启动失败（非致命）: {e}")
 
     @app.on_event("shutdown")
     async def shutdown():
@@ -187,14 +211,69 @@ def create_app(enable_phase2: bool = True):
         """服务健康检查。
 
         Returns:
-            {"status": "alive", "world_tick_count": <int>}
+            {"status":"ok","db":"ok","llm":"ok","world":"ok","life_loop":"ok"}
         """
-        tick_count = _world_tick._tick_count if _world_tick else 0
-        return {
-            "status": "alive",
-            "world_tick_count": tick_count,
-            "phase2_enabled": enable_phase2,
-        }
+        health_status = {"status": "ok", "db": "unknown",
+                          "llm": "unknown", "world": "unknown",
+                          "life_loop": "unknown"}
+
+        # 1. 数据库连接检查
+        try:
+            if _db and _db.conn:
+                cursor = _db._pg_cursor()
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+                health_status["db"] = "ok"
+            else:
+                health_status["db"] = "down"
+                health_status["status"] = "degraded"
+        except Exception:
+            health_status["db"] = "down"
+            health_status["status"] = "degraded"
+
+        # 2. LLM 配置检查
+        try:
+            import os
+            llm_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("DASHSCOPE_API_KEY")
+            if llm_key:
+                health_status["llm"] = "ok"
+            else:
+                health_status["llm"] = "not_configured"
+        except Exception:
+            health_status["llm"] = "unknown"
+
+        # 3. World Engine 运行状态
+        try:
+            if _world_tick:
+                status = _world_tick.get_status()
+                if status.get("running"):
+                    health_status["world"] = "ok"
+                else:
+                    health_status["world"] = "stopped"
+                    health_status["status"] = "degraded"
+            else:
+                health_status["world"] = "not_started"
+                health_status["status"] = "degraded"
+        except Exception:
+            health_status["world"] = "error"
+            health_status["status"] = "degraded"
+
+        # 4. Life Loop 状态
+        try:
+            from v3.runtime.runtime_state import RuntimeState
+            rt = RuntimeState.get_instance()
+            if rt.life_loop_status == "running":
+                health_status["life_loop"] = "ok"
+            elif rt.life_loop_status == "stopped":
+                health_status["life_loop"] = "stopped"
+                health_status["status"] = "degraded"
+            else:
+                health_status["life_loop"] = rt.life_loop_status
+        except Exception:
+            health_status["life_loop"] = "not_started"
+            # life_loop 首次可能未启动，不降级 status
+
+        return health_status
 
     # ── 世界状态 ──
     @app.get("/api/state")
@@ -294,6 +373,108 @@ def create_app(enable_phase2: bool = True):
             print("[V3] WebSocket 客户端已断开")
         except Exception:
             print("[V3] WebSocket 异常")
+
+    # ── V4: Memory API ──
+    @app.get("/api/memory")
+    async def api_memory(character_id: str = None, memory_type: str = None,
+                          limit: int = 50):
+        """查询角色记忆。
+
+        Query params:
+            character_id (optional): 角色 ID，不传则返回全部
+            memory_type (optional): session/short/long/core/episodic/emotional/relationship/visual
+            limit: 返回数量上限，默认 50
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            if character_id:
+                memories = _db.get_memories_by_character(
+                    character_id, memory_type, limit
+                )
+            else:
+                # 不传 character_id 则返回所有角色的记忆
+                chars = _db.get_all_characters()
+                memories = []
+                for c in (chars or []):
+                    char_mems = _db.get_memories_by_character(
+                        c.get("character_id") or c[0], memory_type, min(limit, 10)
+                    )
+                    memories.extend(char_mems)
+
+            return {
+                "count": len(memories),
+                "memories": memories,
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Emotion API ──
+    @app.get("/api/emotion")
+    async def api_emotion(character_id: str = None):
+        """查询角色当前情绪状态。
+
+        Query params:
+            character_id (optional): 角色 ID，不传则返回全部角色
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            if character_id:
+                snap = _db.get_latest_emotion_snapshot(character_id)
+                if snap:
+                    return {
+                        "character_id": character_id,
+                        "emotions": json.loads(snap.get("emotions_json", "{}")),
+                        "pressures": json.loads(snap.get("pressures_json", "{}")),
+                        "dominant": snap.get("dominant", "calm"),
+                        "absence_hours": snap.get("absence_hours", 0),
+                    }
+                return {"character_id": character_id, "emotions": {}, "pressures": {}}
+            else:
+                chars = _db.get_all_characters()
+                result = {}
+                for c in (chars or []):
+                    cid = c.get("character_id") if isinstance(c, dict) else c[0]
+                    snap = _db.get_latest_emotion_snapshot(cid)
+                    result[cid] = {
+                        "emotions": json.loads(snap.get("emotions_json", "{}")) if snap else {},
+                        "pressures": json.loads(snap.get("pressures_json", "{}")) if snap else {},
+                        "dominant": snap.get("dominant", "calm") if snap else "calm",
+                    }
+                return {"characters": result}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: World Calendar API ──
+    @app.get("/api/world/calendar")
+    async def api_world_calendar(days: int = 30):
+        """查询世界日历事件（节日/纪念日）。
+
+        Query params:
+            days: 查询未来N天的事件，默认 30
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            from v3.world.calendar_engine import CalendarEngine
+
+            ce = CalendarEngine(db=_db)
+            # 检测当前日期的事件
+            current_events = ce.check()
+            # 查询数据库中的近期事件
+            upcoming_db = _db.get_upcoming_calendar_events(days)
+            # 预测近期节日
+            upcoming_holidays = ce.get_upcoming_events(days)
+
+            return {
+                "current": current_events,
+                "upcoming_holidays": upcoming_holidays,
+                "upcoming_db_events": upcoming_db,
+                "current_holiday": ce.get_holiday_name(),
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
 
     _app = app
     return app

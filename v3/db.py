@@ -306,6 +306,87 @@ class V3Database:
             )
         """)
 
+        # ── V4 新增表 ──
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS emotion_snapshots (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                tick_id         INTEGER NOT NULL,
+                emotions_json   TEXT    NOT NULL DEFAULT '{}',
+                pressures_json  TEXT    NOT NULL DEFAULT '{}',
+                dominant        TEXT    DEFAULT 'calm',
+                absence_hours   REAL    DEFAULT 0,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS relationship_snapshots (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                tick_id         INTEGER NOT NULL,
+                attachment      REAL    DEFAULT 0,
+                trust           REAL    DEFAULT 50,
+                intimacy        REAL    DEFAULT 0,
+                warmth          REAL    DEFAULT 50,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS memory_items (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                user_id         TEXT    DEFAULT 'default_user',
+                memory_type     TEXT    NOT NULL DEFAULT 'short',
+                content         TEXT    NOT NULL,
+                summary         TEXT    DEFAULT '',
+                emotion_tags    TEXT    DEFAULT '[]',
+                importance      REAL    DEFAULT 0.5,
+                intensity       REAL    DEFAULT 0.5,
+                source          TEXT    DEFAULT 'system',
+                metadata_json   TEXT    DEFAULT '{}',
+                access_count    INTEGER DEFAULT 0,
+                last_accessed   TEXT,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS diary_entries (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                entry_date      TEXT    NOT NULL,
+                title           TEXT,
+                content         TEXT    NOT NULL,
+                mood            TEXT    DEFAULT 'neutral',
+                weather         TEXT,
+                key_events      TEXT    DEFAULT '[]',
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS calendar_events (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                event_type      TEXT    NOT NULL,
+                event_name      TEXT    NOT NULL,
+                event_date      TEXT    NOT NULL,
+                repeat_yearly   INTEGER DEFAULT 0,
+                emotional_impact TEXT   DEFAULT '{}',
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        # ── V4 新增索引 ──
+        self._execute("CREATE INDEX IF NOT EXISTS idx_es_char ON emotion_snapshots(character_id, tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_rs_char ON relationship_snapshots(character_id, tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_mi_char ON memory_items(character_id, memory_type)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_de_char ON diary_entries(character_id, entry_date)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_ce_char ON calendar_events(character_id, event_date)")
+
         # 索引 — PostgreSQL 中 CREATE INDEX IF NOT EXISTS 也支持
         self._execute("CREATE INDEX IF NOT EXISTS idx_ws_tick ON world_state(tick_id)")
         self._execute("CREATE INDEX IF NOT EXISTS idx_we_tick ON world_events(tick_id)")
@@ -611,3 +692,263 @@ class V3Database:
         )
         row = self._fetchone(cursor)
         return row["created_at"] if row else None
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Emotion Snapshots
+    # ══════════════════════════════════════════════════
+
+    def insert_emotion_snapshot(self, character_id: str, tick_id: int,
+                                 emotions: dict, pressures: dict,
+                                 dominant: str = "calm",
+                                 absence_hours: float = 0.0):
+        """写入情绪快照。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        json_args = (
+            json.dumps(emotions, ensure_ascii=False),
+            json.dumps(pressures, ensure_ascii=False),
+        )
+        cursor.execute(f"""
+            INSERT INTO emotion_snapshots
+                (character_id, tick_id, emotions_json, pressures_json, dominant, absence_hours)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, tick_id, *json_args, dominant, absence_hours))
+        self.commit()
+
+    def get_latest_emotion_snapshot(self, character_id: str) -> dict:
+        """获取角色最近一次情绪快照。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT * FROM emotion_snapshots WHERE character_id = {ph} ORDER BY tick_id DESC LIMIT 1",
+            (character_id,)
+        )
+        return self._fetchone(cursor)
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Relationship Snapshots
+    # ══════════════════════════════════════════════════
+
+    def insert_relationship_snapshot(self, character_id: str, tick_id: int,
+                                      attachment: float = 0, trust: float = 50,
+                                      intimacy: float = 0, warmth: float = 50):
+        """写入关系快照。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
+            INSERT INTO relationship_snapshots
+                (character_id, tick_id, attachment, trust, intimacy, warmth)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, tick_id, attachment, trust, intimacy, warmth))
+        self.commit()
+
+    def get_latest_relationship_snapshot(self, character_id: str) -> dict:
+        """获取角色最近一次关系快照。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT * FROM relationship_snapshots WHERE character_id = {ph} ORDER BY tick_id DESC LIMIT 1",
+            (character_id,)
+        )
+        return self._fetchone(cursor)
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Memory Items (8 types)
+    # ══════════════════════════════════════════════════
+
+    def insert_memory_item(self, character_id: str, user_id: str = "default_user",
+                            memory_type: str = "short", content: str = "",
+                            summary: str = "", emotion_tags: list = None,
+                            importance: float = 0.5, intensity: float = 0.5,
+                            source: str = "system", metadata: dict = None) -> int:
+        """插入记忆条目，返回 id。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+
+        tags = json.dumps(emotion_tags or [], ensure_ascii=False)
+        meta = json.dumps(metadata or {}, ensure_ascii=False)
+
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO memory_items
+                    (character_id, user_id, memory_type, content, summary,
+                     emotion_tags, importance, intensity, source, metadata_json)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+                RETURNING id
+            """, (character_id, user_id, memory_type, content, summary,
+                  tags, importance, intensity, source, meta))
+            item_id = cursor.fetchone()["id"]
+        else:
+            cursor.execute(f"""
+                INSERT INTO memory_items
+                    (character_id, user_id, memory_type, content, summary,
+                     emotion_tags, importance, intensity, source, metadata_json)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+            """, (character_id, user_id, memory_type, content, summary,
+                  tags, importance, intensity, source, meta))
+            item_id = cursor.lastrowid
+        self.commit()
+        return item_id
+
+    def get_memories_by_character(self, character_id: str,
+                                   memory_type: str = None,
+                                   limit: int = 50) -> list:
+        """获取角色记忆。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        if memory_type:
+            cursor.execute(f"""
+                SELECT * FROM memory_items
+                WHERE character_id = {ph} AND memory_type = {ph}
+                ORDER BY importance DESC, created_at DESC
+                LIMIT {ph}
+            """, (character_id, memory_type, limit))
+        else:
+            cursor.execute(f"""
+                SELECT * FROM memory_items
+                WHERE character_id = {ph}
+                ORDER BY importance DESC, created_at DESC
+                LIMIT {ph}
+            """, (character_id, limit))
+        return self._fetchall(cursor)
+
+    def search_memories(self, character_id: str, keywords: list = None,
+                         emotion_tags: list = None, limit: int = 20) -> list:
+        """关键词/情绪标签搜索记忆。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        conditions = [f"character_id = {ph}"]
+        params = [character_id]
+
+        if keywords:
+            for kw in keywords:
+                conditions.append(f"content LIKE {ph}")
+                params.append(f"%{kw}%")
+
+        if emotion_tags:
+            for tag in emotion_tags:
+                conditions.append(f"emotion_tags LIKE {ph}")
+                params.append(f"%{tag}%")
+
+        where = " AND ".join(conditions)
+        cursor.execute(f"""
+            SELECT * FROM memory_items WHERE {where}
+            ORDER BY importance DESC, created_at DESC LIMIT {ph}
+        """, (*params, limit))
+        return self._fetchall(cursor)
+
+    def update_memory_access(self, memory_id: int):
+        """更新记忆访问计数和访问时间。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now_expr = "NOW()" if pg else "datetime('now','localtime')"
+        cursor.execute(f"""
+            UPDATE memory_items SET access_count = access_count + 1,
+            last_accessed = {now_expr} WHERE id = {ph}
+        """, (memory_id,))
+        self.commit()
+
+    def delete_low_importance_memories(self, character_id: str,
+                                        threshold: float = 0.1,
+                                        older_than_days: int = 30):
+        """清理低重要性旧记忆。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        if pg:
+            cursor.execute(f"""
+                DELETE FROM memory_items
+                WHERE character_id = {ph}
+                  AND importance < {ph}
+                  AND memory_type = 'short'
+                  AND created_at < NOW() - INTERVAL '{older_than_days} days'
+            """, (character_id, threshold))
+        else:
+            cursor.execute(f"""
+                DELETE FROM memory_items
+                WHERE character_id = {ph}
+                  AND importance < {ph}
+                  AND memory_type = 'short'
+                  AND created_at < datetime('now', 'localtime', '-{older_than_days} days')
+            """, (character_id, threshold))
+        self.commit()
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Diary Entries
+    # ══════════════════════════════════════════════════
+
+    def insert_diary_entry(self, character_id: str, entry_date: str,
+                            title: str, content: str, mood: str = "neutral",
+                            weather: str = None, key_events: list = None):
+        """写入日记条目。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        events = json.dumps(key_events or [], ensure_ascii=False)
+        cursor.execute(f"""
+            INSERT INTO diary_entries (character_id, entry_date, title, content, mood, weather, key_events)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, entry_date, title, content, mood, weather, events))
+        self.commit()
+
+    def get_diary_entries(self, character_id: str = None,
+                            limit: int = 30) -> list:
+        """获取日记条目。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        if character_id:
+            cursor.execute(f"""
+                SELECT * FROM diary_entries WHERE character_id = {ph}
+                ORDER BY entry_date DESC LIMIT {ph}
+            """, (character_id, limit))
+        else:
+            cursor.execute(f"SELECT * FROM diary_entries ORDER BY entry_date DESC LIMIT {ph}", (limit,))
+        return self._fetchall(cursor)
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Calendar Events
+    # ══════════════════════════════════════════════════
+
+    def insert_calendar_event(self, character_id: str, event_type: str,
+                               event_name: str, event_date: str,
+                               repeat_yearly: bool = False,
+                               emotional_impact: dict = None):
+        """插入日历事件（节日/纪念日）。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        impact = json.dumps(emotional_impact or {}, ensure_ascii=False)
+        cursor.execute(f"""
+            INSERT INTO calendar_events (character_id, event_type, event_name, event_date, repeat_yearly, emotional_impact)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, event_type, event_name, event_date, 1 if repeat_yearly else 0, impact))
+        self.commit()
+
+    def get_anniversaries_for_date(self, target_date) -> list:
+        """获取指定日期的周年事件。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        date_str = str(target_date)
+        cursor.execute(f"""
+            SELECT * FROM calendar_events
+            WHERE event_date = {ph} OR (repeat_yearly = 1 AND substr(event_date, 6) = substr({ph}, 6))
+        """, (date_str, date_str))
+        return self._fetchall(cursor)
+
+    def get_upcoming_calendar_events(self, days: int = 7) -> list:
+        """获取近期日历事件。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        if pg:
+            cursor.execute(f"""
+                SELECT * FROM calendar_events
+                WHERE event_date BETWEEN CURRENT_DATE::text AND (CURRENT_DATE + INTERVAL '%s days')::text
+                ORDER BY event_date
+            """, (days,))
+        else:
+            cursor.execute(f"""
+                SELECT * FROM calendar_events
+                WHERE event_date BETWEEN date('now', 'localtime') AND date('now', 'localtime', '+{days} days')
+                ORDER BY event_date
+            """)
+        return self._fetchall(cursor)
