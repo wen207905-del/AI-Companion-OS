@@ -1,0 +1,31 @@
+# AI-Companion-OS V3 — 生产级依赖
+# 核心框架
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+
+# 调度器
+apscheduler>=3.10.4
+
+# 数据库
+psycopg2-binary>=2.9.9
+aiosqlite>=0.19.0
+SQLAlchemy>=2.0.0
+
+# 缓存 / 消息队列
+redis>=5.0.1
+hiredis>=2.2.3
+
+# WebSocket
+websockets>=12.0
+
+# 配置解析
+pyyaml>=6.0.1
+
+# 日志增强
+colorlog>=6.8.0
+
+# 工具库
+python-dateutil>=2.8.2
+tzdata>=2023.3

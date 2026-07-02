@@ -334,3 +334,42 @@ FEEDBACK_MEMORY_TRIGGERS = {
     "on_user_reaction": ["SEND_MESSAGE", "SEND_IMAGE"],
     "threshold_based":  True,
 }
+
+# =============================================================================
+# 生产环境配置
+# =============================================================================
+
+# ── 环境变量 ──
+ENV = os.environ.get("ENV", "development")
+
+# ── 数据库类型 ──
+DB_TYPE = os.environ.get("DB_TYPE", "sqlite")  # sqlite / postgres
+DB_HOST = os.environ.get("DB_HOST", "127.0.0.1")
+DB_PORT = int(os.environ.get("DB_PORT", "5432"))
+DB_USER = os.environ.get("DB_USER", "ai")
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "ai123")
+DB_NAME = os.environ.get("DB_NAME", "companion")
+
+# ── APScheduler 配置 ──
+SCHEDULER_INTERVAL = int(os.environ.get("SCHEDULER_INTERVAL", str(TICK_INTERVAL_SECONDS)))
+SCHEDULER_TIMEZONE = os.environ.get("SCHEDULER_TZ", "Asia/Shanghai")
+SCHEDULER_MISFIRE_GRACE_TIME = int(os.environ.get("SCHEDULER_MISFIRE", "30"))
+
+# ── FastAPI 配置 ──
+API_HOST = os.environ.get("API_HOST", "0.0.0.0")
+API_PORT = int(os.environ.get("API_PORT", "8000"))
+API_WORKERS = int(os.environ.get("API_WORKERS", "1"))
+WEBSOCKET_PING_INTERVAL = int(os.environ.get("WS_PING_INTERVAL", "25"))
+WEBSOCKET_PING_TIMEOUT = int(os.environ.get("WS_PING_TIMEOUT", "60"))
+
+# ── 日志系统配置 ──
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "DEBUG" if ENV == "development" else "INFO")
+LOG_FORMAT = "%(asctime)s | %(levelname)-5s | %(name)s | %(message)s"
+LOG_MAX_BYTES = int(os.environ.get("LOG_MAX_BYTES", str(10 * 1024 * 1024)))  # 10 MB
+LOG_BACKUP_COUNT = int(os.environ.get("LOG_BACKUP_COUNT", "5"))
+
+# ── Redis 配置 ──
+REDIS_HOST = os.environ.get("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
+REDIS_DB = int(os.environ.get("REDIS_DB", "0"))

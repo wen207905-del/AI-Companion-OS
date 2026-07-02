@@ -1,0 +1,77 @@
+version: "3.9"
+
+# AI-Companion-OS V3 — 生产级多服务编排
+services:
+
+  # ── FastAPI 核心服务 ──
+  api:
+    build:
+      context: ./v3
+      dockerfile: Dockerfile
+    container_name: ai_companion_api
+    restart: always
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      - ENV=production
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-ai}
+      - DB_PASSWORD=${DB_PASSWORD:-ai123}
+      - DB_NAME=${DB_NAME:-companion}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TZ=Asia/Shanghai
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./v3/data:/app/data
+      - ./v3/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── PostgreSQL 数据库 ──
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai_companion_pg
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-ai}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ai123}
+      POSTGRES_DB: ${DB_NAME:-companion}
+      TZ: Asia/Shanghai
+    ports:
+      - "${DB_EXTERNAL_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ai} -d ${DB_NAME:-companion}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis 缓存 ──
+  redis:
+    image: redis:7-alpine
+    container_name: ai_companion_redis
+    restart: always
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:

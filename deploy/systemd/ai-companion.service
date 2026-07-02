@@ -1,0 +1,57 @@
+[Unit]
+Description=AI-Companion-OS V3 World Simulation Engine
+Documentation=https://github.com/example/ai-companion-os
+After=network.target network-online.target postgresql.service redis.service
+Wants=network-online.target
+Requires=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=ai-companion
+Group=ai-companion
+WorkingDirectory=/opt/ai-companion/v3
+Environment=PATH=/opt/ai-companion/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=ENV=production
+Environment=DB_TYPE=postgres
+Environment=DB_HOST=127.0.0.1
+Environment=DB_PORT=5432
+Environment=DB_USER=ai
+Environment=DB_PASSWORD=ai123
+Environment=DB_NAME=companion
+Environment=REDIS_HOST=127.0.0.1
+Environment=REDIS_PORT=6379
+Environment=API_HOST=0.0.0.0
+Environment=API_PORT=8000
+Environment=LOG_LEVEL=INFO
+Environment=TZ=Asia/Shanghai
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/opt/ai-companion/venv/bin/uvicorn v3.main:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 2 \
+    --log-level info
+
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# 安全加固
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/ai-companion/v3/data /opt/ai-companion/v3/logs
+ReadOnlyPaths=/opt/ai-companion/v3
+
+# 资源限制
+MemoryHigh=1G
+MemoryMax=2G
+CPUQuota=200%
+
+# 日志
+StandardOutput=append:/opt/ai-companion/v3/logs/systemd_stdout.log
+StandardError=append:/opt/ai-companion/v3/logs/systemd_stderr.log
+
+[Install]
+WantedBy=multi-user.target

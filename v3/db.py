@@ -1,7 +1,8 @@
 """
 V3 数据库模型
 
-使用 SQLite，定义所有 V3 新表的建表语句和基础 ORM 操作。
+支持 SQLite（默认）和 PostgreSQL（通过环境变量 DB_TYPE=postgres 切换）。
+定义所有 V3 新表的建表语句和基础 ORM 操作。
 Phase 2 新增: autonomy_decisions / mood_pressure_log / absence_log / feedback_events。
 """
 
@@ -9,36 +10,132 @@ import sqlite3
 import json
 import os
 from datetime import datetime
-from .config import V3_DB_PATH
+from typing import Optional
+
+from .config import V3_DB_PATH, DB_TYPE, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
 
 
 class V3Database:
-    """V3 数据库管理类，负责建表、连接和基础 CRUD 操作。"""
+    """V3 数据库管理类，支持 SQLite 和 PostgreSQL 双后端。
+
+    通过环境变量 DB_TYPE 切换：
+    - DB_TYPE=sqlite（默认）：使用 SQLite 文件存储
+    - DB_TYPE=postgres：使用 PostgreSQL，连接参数从环境变量读取
+
+    Usage:
+        db = V3Database()
+        db.connect()
+        db.create_tables()
+        # ... 操作 ...
+        db.close()
+    """
 
     def __init__(self, db_path: str = None):
+        self._db_type = DB_TYPE
         self.db_path = db_path or V3_DB_PATH
-        self.conn: sqlite3.Connection = None
+        self.conn = None
+        self._pool = None  # PostgreSQL 连接池（psycopg2 pool）
 
     def connect(self):
-        """建立数据库连接并启用外键和 WAL 模式。"""
+        """建立数据库连接。
+
+        SQLite: 启用 WAL 模式 + 外键。
+        PostgreSQL: 使用 psycopg2 连接池。
+        """
+        if self._db_type == "postgres":
+            return self._connect_postgres()
+        else:
+            return self._connect_sqlite()
+
+    def _connect_sqlite(self):
+        """SQLite 连接。"""
         self.conn = sqlite3.connect(self.db_path)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA foreign_keys=ON")
         self.conn.row_factory = sqlite3.Row
         return self.conn
 
+    def _connect_postgres(self):
+        """PostgreSQL 连接（使用连接池）。"""
+        try:
+            import psycopg2
+            from psycopg2 import pool
+            from psycopg2.extras import RealDictCursor
+        except ImportError:
+            raise ImportError(
+                "psycopg2-binary 未安装。请运行: pip install psycopg2-binary"
+            )
+
+        if self._pool is None:
+            self._pool = pool.SimpleConnectionPool(
+                1, 10,
+                host=DB_HOST,
+                port=DB_PORT,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                dbname=DB_NAME,
+            )
+
+        self.conn = self._pool.getconn()
+        # 设置 cursor_factory 以获得类 dict 访问
+        self._pg_cursor_factory = RealDictCursor
+        return self.conn
+
     def close(self):
         """关闭数据库连接。"""
         if self.conn:
+            if self._db_type == "postgres":
+                if self._pool:
+                    self._pool.putconn(self.conn)
+                self.conn = None
+            else:
+                self.conn.close()
+                self.conn = None
+
+    def close_all(self):
+        """关闭所有连接（PostgreSQL 连接池）。"""
+        if self._db_type == "postgres" and self._pool:
+            self._pool.closeall()
+            self._pool = None
+        elif self.conn:
             self.conn.close()
             self.conn = None
 
+    def _execute(self, sql: str, params: tuple = None):
+        """统一执行 SQL，兼容 SQLite 和 PostgreSQL。
+
+        PostgreSQL 会自动替换：
+        - DATETIME('now','localtime') → NOW()
+        - INTEGER PRIMARY KEY AUTOINCREMENT → SERIAL PRIMARY KEY
+        - 保留 ON CONFLICT ... DO UPDATE 语法（两者均支持）
+        """
+        if self._db_type == "postgres":
+            sql = self._pg_adapt_sql(sql)
+
+        cursor = self.conn.cursor()
+        if params:
+            cursor.execute(sql, params)
+        else:
+            cursor.execute(sql)
+        return cursor
+
+    def _pg_adapt_sql(self, sql: str) -> str:
+        """将 SQLite 特定语法转换为 PostgreSQL 语法。"""
+        # datetime('now','localtime') → NOW()
+        sql = sql.replace("datetime('now','localtime')", "NOW()")
+        # INTEGER PRIMARY KEY AUTOINCREMENT → SERIAL PRIMARY KEY
+        sql = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+        return sql
+
+    def _pg_cursor(self):
+        """返回 PostgreSQL 兼容的 cursor，SQLite 直接使用 self.conn。"""
+        if self._db_type == "postgres":
+            return self.conn.cursor(cursor_factory=self._pg_cursor_factory)
+        return self.conn.cursor()
+
     def create_tables(self):
         """创建所有 V3 表（含 Phase 1 + Phase 2）。"""
-        cursor = self.conn.cursor()
-
-        # ── 世界状态表 ──
-        cursor.execute("""
+        cursor = self._execute("""
             CREATE TABLE IF NOT EXISTS world_state (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -57,8 +154,7 @@ class V3Database:
             )
         """)
 
-        # ── 世界事件表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS world_events (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -69,8 +165,7 @@ class V3Database:
             )
         """)
 
-        # ── 角色状态表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS character_state (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 character_id    TEXT    NOT NULL UNIQUE,
@@ -81,8 +176,7 @@ class V3Database:
             )
         """)
 
-        # ── 角色活动历史表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS character_activity_log (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 character_id    TEXT    NOT NULL,
@@ -94,8 +188,7 @@ class V3Database:
             )
         """)
 
-        # ── 角色视觉档案表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS character_visual_profile (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 character_id    TEXT    NOT NULL UNIQUE,
@@ -109,8 +202,7 @@ class V3Database:
             )
         """)
 
-        # ── 图片请求表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS image_requests (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 character_id    TEXT    NOT NULL,
@@ -122,8 +214,7 @@ class V3Database:
             )
         """)
 
-        # ── 图片资产表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS image_assets (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 character_id    TEXT    NOT NULL,
@@ -138,8 +229,7 @@ class V3Database:
             )
         """)
 
-        # ── Phase 2: 自主决策日志表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS autonomy_decisions (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -152,8 +242,7 @@ class V3Database:
             )
         """)
 
-        # ── 叙事线索表 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS narrative_threads (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 thread_type     TEXT    NOT NULL,
@@ -166,16 +255,14 @@ class V3Database:
             )
         """)
 
-        # ── Tick 计数器 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS tick_counter (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL DEFAULT 0
             )
         """)
 
-        # ── Phase 2: 情绪压力日志 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS mood_pressure_log (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -189,8 +276,7 @@ class V3Database:
             )
         """)
 
-        # ── Phase 2: 缺席记录 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS absence_log (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -201,8 +287,7 @@ class V3Database:
             )
         """)
 
-        # ── Phase 2: 反馈事件记录 ──
-        cursor.execute("""
+        self._execute("""
             CREATE TABLE IF NOT EXISTS feedback_events (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 tick_id         INTEGER NOT NULL,
@@ -221,45 +306,75 @@ class V3Database:
             )
         """)
 
-        # 索引
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ws_tick ON world_state(tick_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_we_tick ON world_events(tick_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_cs_char ON character_state(character_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ad_char ON autonomy_decisions(character_id, tick_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ia_char ON image_assets(character_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_mpl_char ON mood_pressure_log(character_id, tick_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_fe_char ON feedback_events(character_id, tick_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_al_tick ON absence_log(tick_id)")
+        # 索引 — PostgreSQL 中 CREATE INDEX IF NOT EXISTS 也支持
+        self._execute("CREATE INDEX IF NOT EXISTS idx_ws_tick ON world_state(tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_we_tick ON world_events(tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_cs_char ON character_state(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_ad_char ON autonomy_decisions(character_id, tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_ia_char ON image_assets(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_mpl_char ON mood_pressure_log(character_id, tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_fe_char ON feedback_events(character_id, tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_al_tick ON absence_log(tick_id)")
 
-        self.conn.commit()
+        self.commit()
+
+    # ──────── 通用工具 ────────
+
+    def commit(self):
+        """提交事务。SQLite 直接 commit，PostgreSQL 也 commit。"""
+        if self.conn:
+            self.conn.commit()
+
+    def _fetchone(self, cursor) -> Optional[dict]:
+        """统一获取一行。"""
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        if self._db_type == "postgres":
+            return dict(row)
+        return dict(row)
+
+    def _fetchall(self, cursor) -> list:
+        """统一获取多行。"""
+        rows = cursor.fetchall()
+        if self._db_type == "postgres":
+            return [dict(r) for r in rows]
+        return [dict(r) for r in rows]
 
     # ──────── Tick 基础 ────────
 
     def get_tick_id(self) -> int:
         """获取当前 tick_id 并自增。"""
-        cursor = self.conn.cursor()
+        # 使用 _pg_cursor() 确保 PG 游标类型
+        cursor = self._pg_cursor()
         cursor.execute("SELECT tick_id FROM tick_counter ORDER BY id DESC LIMIT 1")
         row = cursor.fetchone()
         if row is None:
             cursor.execute("INSERT INTO tick_counter (tick_id) VALUES (1)")
-            self.conn.commit()
+            self.commit()
             return 1
         else:
-            new_id = row["tick_id"] + 1
-            cursor.execute("INSERT INTO tick_counter (tick_id) VALUES (?)", (new_id,))
-            self.conn.commit()
+            new_id = (row["tick_id"] if self._db_type == "postgres" else row["tick_id"]) + 1
+            cursor.execute("INSERT INTO tick_counter (tick_id) VALUES (%s)" if self._db_type == "postgres" else "INSERT INTO tick_counter (tick_id) VALUES (?)", (new_id,))
+            self.commit()
             return new_id
 
     # ──────── 世界状态 ────────
 
     def insert_world_state(self, tick_id: int, state: dict):
         """写入一条世界状态记录。"""
-        self.conn.execute("""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        placeholder = "%s" if pg else "?"
+        sql = f"""
             INSERT INTO world_state
                 (tick_id, datetime_text, day_of_week, time_period, season,
                  weather_type, temperature, humidity, wind_level, light, noise, atmosphere)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder},
+                    {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder},
+                    {placeholder}, {placeholder})
+        """
+        cursor.execute(sql, (
             tick_id,
             state["datetime"],
             state["day_of_week"],
@@ -273,59 +388,89 @@ class V3Database:
             state["environment"]["noise"],
             state["environment"]["atmosphere"],
         ))
-        self.conn.commit()
+        self.commit()
 
-    def insert_world_event(self, tick_id: int, event_type: str, event_desc: str, severity: str = "normal"):
+    def insert_world_event(self, tick_id: int, event_type: str,
+                            event_desc: str, severity: str = "normal"):
         """写入一条世界事件。"""
-        self.conn.execute(
-            "INSERT INTO world_events (tick_id, event_type, event_desc, severity) VALUES (?, ?, ?, ?)",
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        cursor.execute(
+            f"INSERT INTO world_events (tick_id, event_type, event_desc, severity) VALUES ({ph}, {ph}, {ph}, {ph})",
             (tick_id, event_type, event_desc, severity)
         )
-        self.conn.commit()
+        self.commit()
 
     # ──────── 角色状态 ────────
 
-    def upsert_character_state(self, character_id: str, activity: str, location: str = "home"):
+    def upsert_character_state(self, character_id: str, activity: str,
+                                location: str = "home"):
         """更新或插入角色当前状态。"""
-        self.conn.execute("""
-            INSERT INTO character_state (character_id, current_activity, current_location, activity_started, updated_at)
-            VALUES (?, ?, ?, datetime('now','localtime'), datetime('now','localtime'))
-            ON CONFLICT(character_id) DO UPDATE SET
-                current_activity = excluded.current_activity,
-                current_location = excluded.current_location,
-                activity_started = CASE
-                    WHEN character_state.current_activity != excluded.current_activity
-                    THEN datetime('now','localtime')
-                    ELSE character_state.activity_started
-                END,
-                updated_at = datetime('now','localtime')
-        """, (character_id, activity, location))
-        self.conn.commit()
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO character_state
+                    (character_id, current_activity, current_location, activity_started, updated_at)
+                VALUES ({ph}, {ph}, {ph}, NOW(), NOW())
+                ON CONFLICT (character_id) DO UPDATE SET
+                    current_activity = EXCLUDED.current_activity,
+                    current_location = EXCLUDED.current_location,
+                    activity_started = CASE
+                        WHEN character_state.current_activity != EXCLUDED.current_activity
+                        THEN NOW()
+                        ELSE character_state.activity_started
+                    END,
+                    updated_at = NOW()
+            """, (character_id, activity, location))
+        else:
+            cursor.execute(f"""
+                INSERT INTO character_state (character_id, current_activity, current_location, activity_started, updated_at)
+                VALUES ({ph}, {ph}, {ph}, datetime('now','localtime'), datetime('now','localtime'))
+                ON CONFLICT(character_id) DO UPDATE SET
+                    current_activity = excluded.current_activity,
+                    current_location = excluded.current_location,
+                    activity_started = CASE
+                        WHEN character_state.current_activity != excluded.current_activity
+                        THEN datetime('now','localtime')
+                        ELSE character_state.activity_started
+                    END,
+                    updated_at = datetime('now','localtime')
+            """, (character_id, activity, location))
+        self.commit()
 
     def insert_character_activity_log(self, character_id: str, tick_id: int,
-                                       activity: str, time_period: str, weather_type: str):
+                                       activity: str, time_period: str,
+                                       weather_type: str):
         """写入角色活动日志。"""
-        self.conn.execute(
-            "INSERT INTO character_activity_log (character_id, tick_id, activity, time_period, weather_type) VALUES (?, ?, ?, ?, ?)",
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"INSERT INTO character_activity_log (character_id, tick_id, activity, time_period, weather_type) VALUES ({ph}, {ph}, {ph}, {ph}, {ph})",
             (character_id, tick_id, activity, time_period, weather_type)
         )
-        self.conn.commit()
+        self.commit()
 
     def get_all_characters(self) -> list:
         """获取所有角色 ID 列表。"""
-        cursor = self.conn.cursor()
+        cursor = self._pg_cursor()
         cursor.execute("SELECT character_id, current_activity, current_location FROM character_state")
-        return [dict(row) for row in cursor.fetchall()]
+        return self._fetchall(cursor)
 
     def get_recent_world_states(self, limit: int = 10) -> list:
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM world_state ORDER BY tick_id DESC LIMIT ?", (limit,))
-        return [dict(row) for row in cursor.fetchall()]
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"SELECT * FROM world_state ORDER BY tick_id DESC LIMIT {ph}", (limit,))
+        return self._fetchall(cursor)
 
     def get_recent_world_events(self, limit: int = 50) -> list:
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM world_events ORDER BY tick_id DESC LIMIT ?", (limit,))
-        return [dict(row) for row in cursor.fetchall()]
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"SELECT * FROM world_events ORDER BY tick_id DESC LIMIT {ph}", (limit,))
+        return self._fetchall(cursor)
 
     # ──────── Phase 2: 自主决策 ────────
 
@@ -333,43 +478,49 @@ class V3Database:
                                   action_type: str, probability: float,
                                   decision: str, reason: str = None):
         """写入自主决策记录。"""
-        self.conn.execute(
-            "INSERT INTO autonomy_decisions (tick_id, character_id, action_type, probability, decision, reason) VALUES (?, ?, ?, ?, ?, ?)",
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"INSERT INTO autonomy_decisions (tick_id, character_id, action_type, probability, decision, reason) VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})",
             (tick_id, character_id, action_type, probability, decision, reason)
         )
-        self.conn.commit()
+        self.commit()
 
     def get_last_autonomy_decision(self, character_id: str) -> dict:
         """获取角色最近一次自主决策。"""
-        cursor = self.conn.cursor()
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
         cursor.execute(
-            "SELECT * FROM autonomy_decisions WHERE character_id = ? ORDER BY tick_id DESC LIMIT 1",
+            f"SELECT * FROM autonomy_decisions WHERE character_id = {ph} ORDER BY tick_id DESC LIMIT 1",
             (character_id,)
         )
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        return self._fetchone(cursor)
 
     # ──────── Phase 2: 情绪压力 ────────
 
     def insert_mood_pressure_log(self, tick_id: int, character_id: str,
                                   emotion_type: str, pressure_before: float,
-                                  pressure_after: float, delta: float, trigger: str = "tick"):
+                                  pressure_after: float, delta: float,
+                                  trigger: str = "tick"):
         """写入情绪压力日志。"""
-        self.conn.execute(
-            "INSERT INTO mood_pressure_log (tick_id, character_id, emotion_type, pressure_before, pressure_after, delta, trigger) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"INSERT INTO mood_pressure_log (tick_id, character_id, emotion_type, pressure_before, pressure_after, delta, trigger) VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})",
             (tick_id, character_id, emotion_type, pressure_before, pressure_after, delta, trigger)
         )
-        self.conn.commit()
+        self.commit()
 
     def get_character_pressures(self, character_id: str) -> dict:
         """获取角色当前所有情绪压力值。"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
             SELECT emotion_type, pressure_after FROM mood_pressure_log
-            WHERE character_id = ?
+            WHERE character_id = {ph}
             AND id IN (
                 SELECT MAX(id) FROM mood_pressure_log
-                WHERE character_id = ?
+                WHERE character_id = {ph}
                 GROUP BY emotion_type
             )
         """, (character_id, character_id))
@@ -380,75 +531,83 @@ class V3Database:
     def insert_absence_log(self, tick_id: int, inactive_minutes: int,
                             absence_stage: str, effect_summary: str = None):
         """写入缺席记录。"""
-        self.conn.execute(
-            "INSERT INTO absence_log (tick_id, inactive_minutes, absence_stage, effect_summary) VALUES (?, ?, ?, ?)",
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"INSERT INTO absence_log (tick_id, inactive_minutes, absence_stage, effect_summary) VALUES ({ph}, {ph}, {ph}, {ph})",
             (tick_id, inactive_minutes, absence_stage, effect_summary)
         )
-        self.conn.commit()
+        self.commit()
 
     def get_last_absence_log(self) -> dict:
         """获取最近一次缺席记录。"""
-        cursor = self.conn.cursor()
+        cursor = self._pg_cursor()
         cursor.execute("SELECT * FROM absence_log ORDER BY tick_id DESC LIMIT 1")
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        return self._fetchone(cursor)
 
     # ──────── Phase 2: 反馈事件 ────────
 
     def insert_feedback_event(self, tick_id: int = None, character_id: str = None,
                                action_type: str = None, action_target: str = "user",
-                               intent: str = None, confidence: float = 0.0, priority: int = 0,
-                               execution_status: str = "executed", user_response: str = "none",
+                               intent: str = None, confidence: float = 0.0,
+                               priority: int = 0, execution_status: str = "executed",
+                               user_response: str = "none",
                                emotion_delta: dict = None, relationship_delta: dict = None,
-                               emotion_delta_json: str = "{}", relationship_delta_json: str = "{}",
+                               emotion_delta_json: str = "{}",
+                               relationship_delta_json: str = "{}",
                                memory_entry: str = None, score: float = None,
                                memory_record: str = None, world_affect: dict = None):
         """写入反馈事件记录。
 
         兼容两套调用方式：
-        - FeedbackLoop：传 tick_id=None（自动获取），emotion_delta/relationship_delta dict，score/memory_record/world_affect
+        - FeedbackLoop：传 tick_id=None（自动获取），emotion_delta/relationship_delta dict
         - 原始调用：传 emotion_delta_json/relationship_delta_json 字符串
         """
-        # 自动获取 tick_id
         if tick_id is None:
             tick_id = self.get_tick_id()
 
-        # 处理 dict 参数 -> JSON 字符串
         if emotion_delta is not None:
             emotion_delta_json = json.dumps(emotion_delta, ensure_ascii=False)
         if relationship_delta is not None:
             relationship_delta_json = json.dumps(relationship_delta, ensure_ascii=False)
 
-        # 处理 FeedbackLoop 的简化参数
         effective_confidence = confidence if score is None else score / 100.0
         effective_memory = memory_entry or memory_record
 
-        self.conn.execute("""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
             INSERT INTO feedback_events
                 (tick_id, character_id, action_type, action_target, intent,
                  confidence, priority, execution_status, user_response,
                  emotion_delta_json, relationship_delta_json, memory_entry)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
         """, (tick_id, character_id, action_type, action_target, intent,
               effective_confidence, priority, execution_status, user_response,
               emotion_delta_json, relationship_delta_json, effective_memory))
-        self.conn.commit()
+        self.commit()
 
-    def get_recent_feedback_events(self, character_id: str = None, limit: int = 50) -> list:
-        cursor = self.conn.cursor()
+    def get_recent_feedback_events(self, character_id: str = None,
+                                    limit: int = 50) -> list:
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
         if character_id:
-            cursor.execute("SELECT * FROM feedback_events WHERE character_id = ? ORDER BY tick_id DESC LIMIT ?",
-                           (character_id, limit))
+            cursor.execute(
+                f"SELECT * FROM feedback_events WHERE character_id = {ph} ORDER BY tick_id DESC LIMIT {ph}",
+                (character_id, limit)
+            )
         else:
-            cursor.execute("SELECT * FROM feedback_events ORDER BY tick_id DESC LIMIT ?", (limit,))
-        return [dict(row) for row in cursor.fetchall()]
+            cursor.execute(f"SELECT * FROM feedback_events ORDER BY tick_id DESC LIMIT {ph}", (limit,))
+        return self._fetchall(cursor)
 
-    def get_action_last_occurrence(self, character_id: str, action_type: str) -> str:
-        """获取角色某行为类型最后一次发生的时间（用于冷却判定）。"""
-        cursor = self.conn.cursor()
+    def get_action_last_occurrence(self, character_id: str,
+                                    action_type: str) -> str:
+        """获取角色某行为类型最后一次发生的时间。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
         cursor.execute(
-            "SELECT created_at FROM feedback_events WHERE character_id = ? AND action_type = ? ORDER BY created_at DESC LIMIT 1",
+            f"SELECT created_at FROM feedback_events WHERE character_id = {ph} AND action_type = {ph} ORDER BY created_at DESC LIMIT 1",
             (character_id, action_type)
         )
-        row = cursor.fetchone()
+        row = self._fetchone(cursor)
         return row["created_at"] if row else None
