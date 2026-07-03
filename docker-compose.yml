@@ -46,8 +46,8 @@ services:
       - postgres
       - redis
     volumes:
-      - ./v3/data:/app/data
-      - ./v3/logs:/app/logs
+      - ./v3/data:/app/v3/data
+      - ./v3/logs:/app/v3/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
