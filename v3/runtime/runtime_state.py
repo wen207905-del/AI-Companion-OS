@@ -11,6 +11,17 @@ from threading import Lock
 class RuntimeState:
     """运行时全局状态 — 线程安全的单例式状态管理器。"""
 
+    _instance = None
+    _class_lock = Lock()
+
+    @classmethod
+    def get_instance(cls) -> "RuntimeState":
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
     def __init__(self):
         self._lock = Lock()
         self._state = {
@@ -29,6 +40,22 @@ class RuntimeState:
             "start_time": None,
             "uptime_seconds": 0,
         }
+
+    @property
+    def life_loop_status(self):
+        return self.get("life_loop_status")
+
+    @life_loop_status.setter
+    def life_loop_status(self, value):
+        self.set("life_loop_status", value)
+
+    @property
+    def uptime_start(self):
+        return self.get("start_time")
+
+    @uptime_start.setter
+    def uptime_start(self, value):
+        self.set("start_time", value)
 
     def set(self, key: str, value):
         with self._lock:
