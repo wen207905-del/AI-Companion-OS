@@ -220,6 +220,19 @@
       </div>
     {/if}
 
+    {#if detail.album?.length}
+      <div class="section">
+        <h3 class="section-title">相册</h3>
+        <div class="album-grid">
+          {#each detail.album as item}
+            <a class="album-thumb" href={item.url} target="_blank" rel="noopener">
+              <img src={item.url} alt="角色照片" loading="lazy" />
+            </a>
+          {/each}
+        </div>
+      </div>
+    {/if}
+
     {#if detail.recent_memories?.length}
       <div class="section">
         <h3 class="section-title">近期记忆</h3>
@@ -473,6 +486,26 @@
     border-radius: 20px;
     font-size: 0.8rem;
     border: 1px solid var(--border);
+  }
+
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .album-thumb {
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    aspect-ratio: 3 / 4;
+  }
+
+  .album-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .loading, .empty {

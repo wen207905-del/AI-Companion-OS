@@ -13,6 +13,7 @@ from image.album_store import (
 from image.config import IMAGE_CONTENT_MODE, SILICONFLOW_API_KEY
 from image.identity_loader import load_identity
 from image.prompt_composer import compose_prompt
+from image.prompt_loader import get_default_exposure
 from image.router import route_request
 from image.siliconflow import SiliconFlowError, generate_image
 
@@ -50,6 +51,11 @@ async def generate_character_image(
             other = load_identity(cid)
             if other and other.get("reference_image_path"):
                 extra_refs.append(other["reference_image_path"])
+
+    if not exposure or exposure == "full_clothed":
+        exposure = get_default_exposure(character_id)
+        if IMAGE_CONTENT_MODE != "unrestricted" and exposure == "nude":
+            exposure = "full_clothed"
 
     composed = compose_prompt(
         character_id,
@@ -109,6 +115,7 @@ async def generate_character_image(
             },
         )
         record = get_job(job_id) or {}
+        _write_visual_memory(character_id, job_id, record, composed, exposure)
         return {
             **record,
             "route": {
@@ -121,3 +128,29 @@ async def generate_character_image(
         logger.exception("Image generation failed for %s", character_id)
         update_job_status(job_id, "failed", error=str(exc))
         raise ImageEngineError(str(exc)) from exc
+
+
+def _write_visual_memory(
+    character_id: str,
+    job_id: str,
+    record: dict,
+    composed: dict,
+    exposure: str,
+) -> None:
+    from app_state import state
+
+    if not state.memory_manager:
+        return
+    url = record.get("url") or ""
+    scene = composed.get("scene") or ""
+    text = f"[照片] 场景={scene} 曝光={exposure} 风格={composed.get('style', '')} url={url}"
+    state.memory_manager.store(
+        character_id,
+        text,
+        role="character",
+        scope="private",
+        event_id=job_id,
+        intensity=75.0,
+        memory_type="visual",
+    )
+

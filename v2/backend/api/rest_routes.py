@@ -18,6 +18,7 @@ from chat.group_service import (
     remove_member,
 )
 from config import APP_VERSION, CONTENT_MODE, LLM_STREAM, USER_NAME, USER_NICKNAME
+from image.album_store import list_album
 from image.config import SILICONFLOW_API_KEY, IMAGE_CONTENT_MODE
 from engine.world_clock import snapshot as world_snapshot
 from llm import router as llm_router
@@ -149,6 +150,8 @@ def get_character(character_id: str):
     if state.memory_manager:
         memories = state.memory_manager.recent_for_character(character_id, limit=5)
 
+    album = list_album(character_id, limit=12)
+
     return {
         "id": character_id,
         "persona": persona,
@@ -158,6 +161,8 @@ def get_character(character_id: str):
         "chat_style": style,
         "growth": growth,
         "recent_memories": memories,
+        "album": album,
+        "image_enabled": bool(SILICONFLOW_API_KEY),
         "body_experiences": build_body_experiences(persona, rel),
         "photo_template": get_photo_template_meta(character_id),
     }

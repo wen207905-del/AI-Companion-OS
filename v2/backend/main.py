@@ -18,6 +18,7 @@ from bootstrap import init_all
 from config import SERVER_HOST, SERVER_PORT
 from image.config import IMAGE_OUTPUT_DIR
 from personality.photo_templates import template_dir
+from runtime.life_scheduler import get_scheduler
 
 
 def _maybe_reset_world() -> None:
@@ -32,7 +33,9 @@ def _maybe_reset_world() -> None:
 async def lifespan(app: FastAPI):
     _maybe_reset_world()
     init_all()
+    get_scheduler().start()
     yield
+    await get_scheduler().stop()
 
 
 app = FastAPI(title="AI Companion OS V2.3", lifespan=lifespan)

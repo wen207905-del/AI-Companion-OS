@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from image.config import DEFAULT_NEGATIVE, IMAGE_DEFAULT_STYLE
+from image.config import DEFAULT_NEGATIVE, IMAGE_CONTENT_MODE, IMAGE_DEFAULT_STYLE
 from image.identity_loader import load_identity
+from image.prompt_loader import get_character_base_prompt, get_global_style_suffix
 
 SCENE_PROMPTS = {
     "bedroom": "cozy bedroom, soft warm lamp light, rumpled sheets, intimate atmosphere",
@@ -60,12 +61,21 @@ def compose_prompt(
         names = ", ".join(multi_characters)
         scene_block += f" Multiple characters in frame: {names}, balanced composition."
 
-    prompt = " ".join(
-        filter(
-            None,
-            [identity_block, emotion_block, scene_block, pose_block, outfit_block, style_suffix, extra],
-        )
-    )
+    base_prompt = get_character_base_prompt(character_id)
+    global_style = get_global_style_suffix()
+
+    prompt_parts = [
+        base_prompt,
+        identity_block,
+        emotion_block,
+        scene_block,
+        pose_block,
+        outfit_block,
+        style_suffix,
+        global_style,
+        extra,
+    ]
+    prompt = " ".join(filter(None, prompt_parts))
 
     return {
         "prompt": prompt.strip(),

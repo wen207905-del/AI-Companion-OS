@@ -105,6 +105,22 @@ class EmotionEngine:
                 setattr(s, field, max(0, current - decay))
         s.last_update = now
 
+    def apply_user_absence(self, character_id: str, hours_since_user: float, *, love: float = 50.0):
+        """Increase lonely/sad when user has been away; called on tick and summary."""
+        if character_id not in self.states or hours_since_user < 0.5:
+            return
+        self.apply_decay(character_id)
+        s = self.states[character_id]
+
+        if hours_since_user >= 1:
+            s.lonely = min(100.0, s.lonely + min(25.0, hours_since_user * 2.5))
+        if hours_since_user >= 6:
+            s.lonely = min(100.0, s.lonely + 8.0)
+            s.sad = min(100.0, s.sad + min(18.0, hours_since_user * 0.8))
+        if hours_since_user >= 24 and love >= 60:
+            s.sad = min(100.0, s.sad + 10.0)
+            s.happy = max(0.0, s.happy - min(15.0, hours_since_user * 0.3))
+
     def apply_effect(self, character_id: str, field: str, delta: float):
         """应用情绪变化"""
         if character_id not in self.states:
