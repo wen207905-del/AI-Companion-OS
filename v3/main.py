@@ -27,6 +27,7 @@ from .config import (
 _app: Optional[object] = None
 _world_tick: Optional[object] = None
 _life_kernel: Optional[object] = None
+_scheduler: Optional[object] = None
 _db: Optional[V3Database] = None
 
 # ═════════════════════════════════════════════════════════════
@@ -142,7 +143,7 @@ def create_app(enable_phase2: bool = True):
     Args:
         enable_phase2: 是否启用 Phase 2 自主行为链路
     """
-    global _app, _world_tick, _life_kernel, _db
+    global _app, _world_tick, _life_kernel, _scheduler, _db
 
     try:
         from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -161,25 +162,34 @@ def create_app(enable_phase2: bool = True):
     # ── 启动事件 ──
     @app.on_event("startup")
     async def startup():
-        global _world_tick, _life_kernel, _db
+        global _world_tick, _life_kernel, _scheduler, _db
 
         from .world.world_tick import WorldTick
         from v3.runtime.runtime_state import RuntimeState
+        from v3.runtime.event_bus import EventBus
+        from v3.runtime.scheduler import Scheduler
 
         _db = V3Database()
         init_database(_db)
         register_default_characters(_db)
 
-        # 初始化 Runtime State
         rt = RuntimeState.get_instance()
         rt.life_loop_status = "initializing"
+        bus = EventBus.get_instance()
 
-        # 初始化 V4 LifeKernel（统一生命内核，驱动整个系统）
+        def start_scheduler(life_loop):
+            global _scheduler
+            try:
+                _scheduler = Scheduler(event_bus=bus, life_loop=life_loop)
+                _scheduler.start()
+                print("[V3] Scheduler 已启动（1min / 5min / 每日0点）")
+            except Exception as e:
+                print(f"[V3] Scheduler 启动失败（非致命）: {e}")
+                _scheduler = None
+
         try:
             from v3.core.life_kernel import LifeKernel
-            from v3.runtime.event_bus import EventBus
 
-            bus = EventBus.get_instance()
             _life_kernel = LifeKernel(
                 event_bus=bus,
                 db=_db,
@@ -188,6 +198,7 @@ def create_app(enable_phase2: bool = True):
             _life_kernel.start()
             rt.life_loop_status = "running"
             rt.uptime_start = time.time()
+            start_scheduler(_life_kernel)
             print("[V3] LifeKernel 已启动（V4 统一生命内核，interval=5s）")
         except Exception as e:
             print(f"[V3] LifeKernel 启动失败（降级到 WorldTick）: {e}")
@@ -205,26 +216,18 @@ def create_app(enable_phase2: bool = True):
 
             rt.life_loop_status = "running"
             rt.uptime_start = time.time()
+            start_scheduler(_world_tick)
             print("[V3] WorldTick 已启动（降级模式）")
-
-            # 初始化 V4 Scheduler（三层调度）
-            try:
-                from v3.runtime.scheduler import V4Scheduler
-                bus2 = EventBus.get_instance()
-                v4_scheduler = V4Scheduler(
-                    event_bus=bus2,
-                    world_tick=_world_tick,
-                    db=_db,
-                )
-                v4_scheduler.start()
-                print("[V3] V4 Scheduler 已启动（1min / 5min / 每日0点）")
-            except Exception as e2:
-                print(f"[V3] V4 Scheduler 启动失败（非致命）: {e2}")
 
         print("[V3] V4 全栈启动完成")
 
     @app.on_event("shutdown")
     async def shutdown():
+        global _scheduler, _life_kernel, _world_tick
+        if _scheduler:
+            _scheduler.stop()
+        if _life_kernel:
+            _life_kernel.stop()
         if _world_tick:
             _world_tick.stop()
         print("[V3] 服务已停止")

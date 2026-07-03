@@ -367,6 +367,18 @@ class WorldTick:
                 weather_type=world_state.weather.type,
             )
 
+    def run_once(self) -> dict:
+        """Scheduler 中频 tick 入口。"""
+        return self.tick_once()
+
+    def run_minute_tick(self) -> dict:
+        """Scheduler 1 分钟级 tick 入口。"""
+        return {}
+
+    def run_daily_tick(self) -> dict:
+        """Scheduler 每日 tick 入口。"""
+        return self.tick_once()
+
     def get_status(self) -> dict:
         """获取完整的 WorldTick 运行状态。"""
         ws = self.world_engine

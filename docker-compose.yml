@@ -46,6 +46,7 @@ services:
       - postgres
       - redis
     volumes:
+      - ./config:/app/config:ro
       - ./v3/data:/app/v3/data
       - ./v3/logs:/app/v3/logs
     healthcheck:

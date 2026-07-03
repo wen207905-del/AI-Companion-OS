@@ -250,6 +250,18 @@ class LifeKernel:
             "tick_interval": self.tick_interval,
         }
 
+    def run_once(self) -> dict:
+        """Scheduler 中频 tick 入口。"""
+        return self.tick()
+
+    def run_minute_tick(self) -> dict:
+        """Scheduler 1 分钟级 tick 入口。"""
+        return {}
+
+    def run_daily_tick(self) -> dict:
+        """Scheduler 每日 tick 入口。"""
+        return self.tick()
+
 
 # ── 便捷工厂 ──
 

@@ -29,6 +29,17 @@ class EventBus:
     支持 publish/subscribe，线程安全。
     """
 
+    _instance = None
+    _class_lock = threading.Lock()
+
+    @classmethod
+    def get_instance(cls) -> "EventBus":
+        if cls._instance is None:
+            with cls._class_lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
     VALID_EVENT_TYPES = {
         "world_tick", "tick_minute", "tick_medium", "tick_daily",
         "emotion_change", "autonomy_decision", "action_executed",
