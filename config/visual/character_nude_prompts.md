@@ -1,7 +1,8 @@
 # Character Nude Image Prompts — English Reference Library
 
 > **Purpose:** One unique English prompt per character for SiliconFlow / Qwen-Image generation.  
-> **Style baseline:** Cinematic anime-realism portrait (same family as `character_templates/` refs).  
+> **Style baseline:** Photorealistic gravure / hyperreal portrait (same family as `config/character_templates/` refs — local ComfyUI quality).  
+> **Note:** SiliconFlow API blocks nude reference generation; use existing refs in `角色模版/` or generate locally, then save as `{character_id}.jpg`.
 > **Exposure:** Full nude, artistic, tasteful composition — private companion use only.  
 > **Female rule:** All female characters use **voluptuous / huge bust** descriptors (user override).  
 > **Male:** `wang_dahai` only — athletic male nude, no breast descriptors.

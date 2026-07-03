@@ -11,6 +11,7 @@ from image.album_store import (
     update_job_status,
 )
 from image.config import IMAGE_CONTENT_MODE, SILICONFLOW_API_KEY
+from image.exposure_fallback import fallback_exposures, is_content_filter_error
 from image.identity_loader import load_identity
 from image.prompt_composer import compose_prompt
 from image.prompt_loader import get_default_exposure
@@ -22,6 +23,80 @@ logger = logging.getLogger(__name__)
 
 class ImageEngineError(Exception):
     pass
+
+
+async def _attempt_generate(
+    character_id: str,
+    *,
+    scene: str,
+    style: str,
+    outfit: str,
+    pose: str,
+    emotion: str,
+    exposure: str,
+    extra: str,
+    multi_characters: list[str] | None,
+    priority: str,
+    job_id: str,
+) -> tuple[dict, dict, str]:
+    identity = load_identity(character_id)
+    ref_path = identity.get("reference_image_path") if identity else None
+
+    extra_refs: list[str] = []
+    if multi_characters:
+        for cid in multi_characters:
+            if cid == character_id:
+                continue
+            other = load_identity(cid)
+            if other and other.get("reference_image_path"):
+                extra_refs.append(other["reference_image_path"])
+
+    effective_exposure = (
+        exposure if IMAGE_CONTENT_MODE == "unrestricted" else "full_clothed"
+    )
+    composed = compose_prompt(
+        character_id,
+        scene=scene,
+        style=style,
+        outfit=outfit,
+        pose=pose,
+        emotion=emotion,
+        exposure=effective_exposure,
+        extra=extra,
+        multi_characters=multi_characters,
+    )
+
+    route = route_request(
+        character_id=character_id,
+        style=composed["style"],
+        exposure=exposure,
+        multi_characters=multi_characters,
+        reference_path=ref_path,
+        extra_refs=extra_refs,
+        priority=priority,
+    )
+
+    result = await generate_image(
+        composed["prompt"],
+        composed["negative_prompt"],
+        route,
+        seed=composed.get("identity_seed"),
+    )
+    local_url = await download_and_save(result["image_url"], character_id, job_id)
+    update_job_status(
+        job_id,
+        "completed",
+        local_url=local_url,
+        meta_patch={
+            "width": result["width"],
+            "height": result["height"],
+            "route_reason": result["reason"],
+            "mode": result["mode"],
+            "exposure_requested": exposure,
+        },
+    )
+    record = get_job(job_id) or {}
+    return result, composed, exposure
 
 
 async def generate_character_image(
@@ -40,94 +115,101 @@ async def generate_character_image(
     if not SILICONFLOW_API_KEY:
         raise ImageEngineError("SILICONFLOW_API_KEY not configured — add it to .env")
 
-    identity = load_identity(character_id)
-    ref_path = identity.get("reference_image_path") if identity else None
-
-    extra_refs: list[str] = []
-    if multi_characters:
-        for cid in multi_characters:
-            if cid == character_id:
-                continue
-            other = load_identity(cid)
-            if other and other.get("reference_image_path"):
-                extra_refs.append(other["reference_image_path"])
-
-    if not exposure or exposure == "full_clothed":
+    if not exposure:
         exposure = get_default_exposure(character_id)
         if IMAGE_CONTENT_MODE != "unrestricted" and exposure == "nude":
             exposure = "full_clothed"
 
-    composed = compose_prompt(
-        character_id,
-        scene=scene,
-        style=style,
-        outfit=outfit,
-        pose=pose,
-        emotion=emotion,
-        exposure=exposure if IMAGE_CONTENT_MODE == "unrestricted" else "full_clothed",
-        extra=extra,
-        multi_characters=multi_characters,
-    )
+    exposures_to_try = [exposure] + fallback_exposures(exposure)
+    last_error: Exception | None = None
 
-    route = route_request(
-        character_id=character_id,
-        style=composed["style"],
-        exposure=exposure,
-        multi_characters=multi_characters,
-        reference_path=ref_path,
-        extra_refs=extra_refs,
-        priority=priority,
-    )
-
-    job_id = create_pending_job(
-        character_id=character_id,
-        prompt=composed["prompt"],
-        model=route.model,
-        scene=scene,
-        style=composed["style"],
-        meta={
-            "route_reason": route.reason,
-            "mode": route.mode,
-            "exposure": exposure,
-            "content_mode": IMAGE_CONTENT_MODE,
-        },
-    )
-
-    try:
-        result = await generate_image(
-            composed["prompt"],
-            composed["negative_prompt"],
-            route,
-            seed=composed.get("identity_seed"),
+    for attempt_exposure in exposures_to_try:
+        composed_preview = compose_prompt(
+            character_id,
+            scene=scene,
+            style=style,
+            outfit=outfit,
+            pose=pose,
+            emotion=emotion,
+            exposure=attempt_exposure if IMAGE_CONTENT_MODE == "unrestricted" else "full_clothed",
+            extra=extra,
+            multi_characters=multi_characters,
         )
-        local_url = await download_and_save(
-            result["image_url"], character_id, job_id
+        route_preview = route_request(
+            character_id=character_id,
+            style=composed_preview["style"],
+            exposure=attempt_exposure,
+            multi_characters=multi_characters,
+            reference_path=(load_identity(character_id) or {}).get("reference_image_path"),
+            priority=priority,
         )
-        update_job_status(
-            job_id,
-            "completed",
-            local_url=local_url,
-            meta_patch={
-                "width": result["width"],
-                "height": result["height"],
-                "route_reason": result["reason"],
-                "mode": result["mode"],
+        job_id = create_pending_job(
+            character_id=character_id,
+            prompt=composed_preview["prompt"],
+            model=route_preview.model,
+            scene=scene,
+            style=composed_preview["style"],
+            meta={
+                "route_reason": route_preview.reason,
+                "mode": route_preview.mode,
+                "exposure": attempt_exposure,
+                "content_mode": IMAGE_CONTENT_MODE,
             },
         )
-        record = get_job(job_id) or {}
-        _write_visual_memory(character_id, job_id, record, composed, exposure)
-        return {
-            **record,
-            "route": {
-                "model": result["model"],
-                "reason": result["reason"],
-                "mode": result["mode"],
-            },
-        }
-    except (SiliconFlowError, Exception) as exc:
-        logger.exception("Image generation failed for %s", character_id)
-        update_job_status(job_id, "failed", error=str(exc))
-        raise ImageEngineError(str(exc)) from exc
+
+        try:
+            result, composed, used_exposure = await _attempt_generate(
+                character_id,
+                scene=scene,
+                style=style,
+                outfit=outfit,
+                pose=pose,
+                emotion=emotion,
+                exposure=attempt_exposure,
+                extra=extra,
+                multi_characters=multi_characters,
+                priority=priority,
+                job_id=job_id,
+            )
+            if used_exposure != exposure:
+                logger.info(
+                    "Image exposure fallback %s → %s for %s",
+                    exposure,
+                    used_exposure,
+                    character_id,
+                )
+            record = get_job(job_id) or {}
+            _write_visual_memory(character_id, job_id, record, composed, used_exposure)
+            return {
+                **record,
+                "route": {
+                    "model": result["model"],
+                    "reason": result["reason"],
+                    "mode": result["mode"],
+                },
+                "exposure_used": used_exposure,
+                "exposure_requested": exposure,
+                "fallback": used_exposure != exposure,
+            }
+        except SiliconFlowError as exc:
+            last_error = exc
+            update_job_status(job_id, "failed", error=str(exc))
+            if is_content_filter_error(exc) and attempt_exposure != exposures_to_try[-1]:
+                logger.warning(
+                    "SiliconFlow content filter for %s exposure=%s, trying softer",
+                    character_id,
+                    attempt_exposure,
+                )
+                continue
+            logger.exception("Image generation failed for %s", character_id)
+            raise ImageEngineError(str(exc)) from exc
+        except Exception as exc:
+            last_error = exc
+            update_job_status(job_id, "failed", error=str(exc))
+            logger.exception("Image generation failed for %s", character_id)
+            raise ImageEngineError(str(exc)) from exc
+
+    raise ImageEngineError(str(last_error or "Image generation failed"))
 
 
 def _write_visual_memory(
@@ -153,4 +235,3 @@ def _write_visual_memory(
         intensity=75.0,
         memory_type="visual",
     )
-

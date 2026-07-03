@@ -21,7 +21,7 @@ STYLE_SUFFIX = {
     "portrait": "85mm portrait lens, shallow depth of field, cinematic lighting",
     "full_body": "full body in frame, editorial photography, clean composition",
     "candid": "candid moment, photojournalistic, authentic emotion",
-    "cinematic_portrait": "cinematic anime realism, film grain subtle, 8k detail, soft shadows",
+    "cinematic_portrait": "photorealistic, hyperrealistic, 8k uhd, raw photo, gravure idol aesthetic, soft studio lighting, flawless skin",
 }
 
 

@@ -63,3 +63,36 @@ def boundary_hint_for(persona: dict, user_message: str, character_id: str) -> st
             event_id="boundary",
         )
     return evaluation.get("prompt_hint", "")
+
+
+def status_block_for(
+    character_id: str,
+    persona: dict,
+    rel_summary: dict,
+    emo_summary: dict,
+    *,
+    user_message: str = "",
+    scope: str = "private",
+    group_name: str = "",
+) -> str:
+    """Comprehensive status mod block (V4/V5), empty when mod disabled."""
+    from mod.status_block import build_status_block
+
+    arousal_summary = None
+    growth_summary = None
+    if state.arousal_engine:
+        arousal_summary = state.arousal_engine.get_summary(character_id)
+    if state.growth_engine:
+        growth_summary = state.growth_engine.get_profile(character_id)
+
+    return build_status_block(
+        character_id,
+        persona,
+        rel_summary,
+        emo_summary,
+        user_message=user_message,
+        arousal_summary=arousal_summary,
+        growth_summary=growth_summary,
+        scope=scope,
+        group_name=group_name,
+    )

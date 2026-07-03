@@ -1,0 +1,63 @@
+# 极度性感情趣装目录 — 用于状态栏「当前服饰」推断与 prompt 描写参考
+
+stockings:
+  - 黑色吊带丝袜
+  - 白色过膝袜
+  - 渔网袜
+  - 肉色油亮丝袜
+  - 蕾丝边大腿袜
+  - 网格网袜
+
+categories:
+  jk_sexy:
+    label: JK（性感改良版）
+    keywords: [jk, 水手服, 校服, 学院]
+    desc: 改良版 JK 水手服，短裙拉高、领结松散、衬衫微敞，露腰线与绝对领域
+  maid:
+    label: 女仆装
+    keywords: [女仆, maid, 围裙]
+    desc: 经典黑白女仆装，蕾丝围裙、短蓬裙、猫耳可选，胸口低开
+  cos_sexy:
+    label: Cos（性感改良版）
+    keywords: [cos, cosplay, 角色扮演]
+    desc: 动漫角色性感改良 cos，布料节省、强调曲线与皮肤露出
+  professional:
+    label: 职业装（紧身/暴露）
+    keywords: [OL, 职业, 秘书, 制服]
+    desc: 紧身职业套装，包臀短裙、深 V 衬衫、细高跟
+  sukumisu:
+    label: 死库水
+    keywords: [死库水, 泳装, 竞技泳装]
+    desc: 深蓝/黑色死库水，高叉剪裁，湿身时贴肤
+  tight_dress:
+    label: 紧身裙/衣
+    keywords: [紧身裙, 包臀, 连衣裙, 礼服裙]
+    desc: 针织或乳胶质感紧身裙，勾勒腰臀曲线
+  lingerie_swim:
+    label: 情趣泳装
+    keywords: [比基尼, 泳装, bikini]
+    desc: 细绳比基尼或镂空泳装，布料极少
+  lingerie_sleep:
+    label: 情趣睡衣
+    keywords: [睡裙, 睡衣, 吊带睡裙, 蕾丝睡]
+    desc: 半透明蕾丝吊带睡裙或真丝短睡袍
+  lingerie_sport:
+    label: 情趣运动装
+    keywords: [运动内衣, 瑜伽, 健身服]
+    desc: 高腰运动短裤 + 运动 bra，或瑜伽紧身衣
+  lingerie_wedding:
+    label: 情趣婚纱
+    keywords: [婚纱, 新娘]
+    desc: 改良婚纱，大露背、深 V、拖尾可省略
+  formal_sexy:
+    label: 礼服
+    keywords: [礼服, 晚礼, 宴会]
+    desc: 高开叉晚礼服，露背露肩，贴身剪裁
+  home_casual:
+    label: 居家
+    keywords: [居家, 家居, T恤, 宽松]
+    desc: 宽松家居服或男友衬衫，若隐若现
+  default:
+    label: 日常
+    keywords: []
+    desc: 符合角色人设的日常穿搭

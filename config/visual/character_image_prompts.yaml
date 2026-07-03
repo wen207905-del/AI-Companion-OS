@@ -4,39 +4,39 @@
 characters:
   ye_ruxue:
     base: "cold mature woman, porcelain skin, black waist-length straight hair, phoenix eyes, huge voluptuous breasts, slim tall body, aloof gaze"
-    default_exposure: nude
+    default_exposure: casual_home
   bai_rou:
     base: "warm gentle woman, wavy chest-length brown hair, soft smiling eyes, huge voluptuous breasts, petite curvy body, nurturing aura"
-    default_exposure: nude
+    default_exposure: casual_home
   gu_wanqing:
     base: "handsome androgynous woman, short sleek bob, sharp hazel eyes, huge voluptuous breasts, lean toned body, cool confident gaze"
-    default_exposure: nude
+    default_exposure: casual_home
   liu_qingning:
     base: "youthful energetic woman, bangs shoulder-length hair, bright round eyes, huge voluptuous breasts, petite active body, cheerful smile"
-    default_exposure: nude
+    default_exposure: casual_home
   shen_man:
     base: "supermodel goddess, jet black silk hair, perfect features, enormous voluptuous breasts, ultra slim waist, hourglass body, soft private gaze"
-    default_exposure: nude
+    default_exposure: casual_home
   lin_tangtang:
     base: "hot fitness fox-girl, honey tan skin, wolf-cut long hair, cat-eye makeup, huge voluptuous breasts, toned abs, confident smirk"
-    default_exposure: nude
+    default_exposure: casual_home
   su_nian:
     base: "poetic literary woman, long wavy brown hair, dreamy misty eyes, huge voluptuous breasts, slender soft body, wistful gentle smile"
-    default_exposure: nude
+    default_exposure: casual_home
   xingye_liuli:
     base: "doll-like girl, silver-white hime hair, sapphire blue eyes, huge voluptuous breasts, petite doll proportions, pure innocent gaze"
-    default_exposure: nude
+    default_exposure: casual_home
   xiao_ying:
     base: "cute maid-like girl, twin-tail curls, amber doe eyes, huge voluptuous breasts, petite cute body, radiant healing smile"
-    default_exposure: nude
+    default_exposure: casual_home
   mo_xiaoran:
     base: "gothic pale girl, black hime-cut hair, teardrop mole, huge voluptuous breasts, fragile doll body, yandere soft smile"
-    default_exposure: nude
+    default_exposure: casual_home
   hua_li:
     base: "tiny moe girl, fluffy chestnut bob, puppy eyes, huge voluptuous breasts, miniature soft body, clingy cute pout"
-    default_exposure: nude
+    default_exposure: casual_home
   wang_dahai:
     base: "tall athletic man, square jaw, undercut messy hair, two-day stubble, broad muscular body, relaxed brotherly smirk, no female breasts"
-    default_exposure: nude
+    default_exposure: casual_home
 
-style_suffix: "cinematic anime realism, soft window light, 85mm portrait, natural skin texture, film grain, 8k detail, artistic nude photography, looking at viewer"
+style_suffix: "photorealistic, hyperrealistic, 8k uhd, raw photo, gravure idol aesthetic, soft studio lighting, flawless porcelain skin, shallow depth of field, looking at viewer"

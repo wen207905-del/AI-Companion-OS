@@ -9,7 +9,7 @@ from typing import Any
 from app_state import state
 from api.ws_hub import hub
 from chat import llm_prefs
-from chat.context_builder import memory_block_for_group
+from chat.context_builder import memory_block_for_group, status_block_for
 from chat.history_loader import load_group_history_for_character
 from chat.prompt_builder import PromptBuilder
 from chat.reply_service import decide_character_chain
@@ -190,6 +190,10 @@ async def maybe_run_character_chain(
     )
     builder = PromptBuilder(persona)
     memory_text = memory_block_for_group(chain_char, user_message, group_id)
+    status_text = status_block_for(
+        chain_char, persona, group_rel, group_emo,
+        user_message=user_message, scope="group", group_name=group_name,
+    )
     llm_messages = builder.build_group_chain_messages(
         group_emo,
         group_rel,
@@ -200,6 +204,7 @@ async def maybe_run_character_chain(
         target_content,
         history=group_hist,
         memory_text=memory_text,
+        status_text=status_text,
         member_ids=list(members),
         character_id=chain_char,
         persona_loader=state.persona_loader,

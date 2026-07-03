@@ -457,6 +457,7 @@ class PromptBuilder:
         history: list[dict[str, str]],
         memory_text: str = "",
         boundary_hint: str = "",
+        status_text: str = "",
         user_message: str = "",
     ) -> list[dict[str, str]]:
         um = (user_message or "").strip()
@@ -466,6 +467,8 @@ class PromptBuilder:
             ref_block = style_reference_block("private")
             if ref_block:
                 system += ref_block
+        if status_text:
+            system += "\n\n" + status_text
         if memory_text:
             system += "\n\n" + memory_text
         if boundary_hint:
@@ -543,6 +546,7 @@ class PromptBuilder:
         history: list[dict[str, str]] | None = None,
         memory_text: str = "",
         boundary_hint: str = "",
+        status_text: str = "",
         member_ids: list[str] | None = None,
         prior_replies: list[tuple[str, str]] | None = None,
         character_id: str | None = None,
@@ -555,6 +559,8 @@ class PromptBuilder:
             ref_block = style_reference_block("group")
             if ref_block:
                 system += ref_block
+        if status_text:
+            system += "\n\n" + status_text
         if memory_text:
             system += "\n\n" + memory_text
         if boundary_hint:
@@ -608,6 +614,7 @@ class PromptBuilder:
         target_content: str,
         history: list[dict[str, str]] | None = None,
         memory_text: str = "",
+        status_text: str = "",
         member_ids: list[str] | None = None,
         character_id: str | None = None,
         persona_loader=None,
@@ -619,6 +626,8 @@ class PromptBuilder:
             ref_block = style_reference_block("group")
             if ref_block:
                 base += ref_block
+        if status_text:
+            base += "\n\n" + status_text
         if memory_text:
             base += "\n\n" + memory_text
         cid = character_id or self._persona.get("id", "")

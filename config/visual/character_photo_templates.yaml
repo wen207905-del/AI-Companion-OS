@@ -5,8 +5,8 @@ template_dir: character_templates
 
 characters:
   ye_ruxue:
-    template: 8f1f128070a0ac7e682e9081e1eba464.jpg
-    note: 冷艳成熟女性参考
+    template: ye_ruxue.jpg
+    note: 冷艳成熟女性参考（独立生成）
   bai_rou:
     template: e5d80ebc5b793fa9a66fa0e09c394052.jpg
     note: 温柔邻家姐姐参考

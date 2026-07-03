@@ -10,7 +10,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.ws_hub import hub
 from app_state import state
-from chat.context_builder import boundary_hint_for, memory_block_for, memory_block_for_group
+from chat.context_builder import boundary_hint_for, memory_block_for, memory_block_for_group, status_block_for
 from chat.group_service import maybe_run_character_chain
 from chat.history_loader import load_group_history_for_character, load_private_history
 from chat.message_service import MessageError
@@ -116,11 +116,16 @@ async def private_chat(websocket: WebSocket, character_id: str):
                 style = state.persona_loader.get_chat_style(character_id)
                 history = load_private_history(state.db, character_id, limit=30)
                 memory_text = memory_block_for(character_id, user_message, scope="private")
+                status_text = status_block_for(
+                    character_id, persona, rel, emo,
+                    user_message=user_message, scope="private",
+                )
                 builder = PromptBuilder(persona)
                 llm_messages = builder.build_private_messages(
                     rel, emo, style, history,
                     memory_text=memory_text,
                     boundary_hint=boundary_hint,
+                    status_text=status_text,
                     user_message=user_message,
                 )
 
@@ -220,11 +225,16 @@ async def private_chat(websocket: WebSocket, character_id: str):
             style = state.persona_loader.get_chat_style(character_id)
             history = load_private_history(state.db, character_id, limit=30)
             memory_text = memory_block_for(character_id, user_message, scope="private")
+            status_text = status_block_for(
+                character_id, persona, rel, emo,
+                user_message=user_message, scope="private",
+            )
             builder = PromptBuilder(persona)
             llm_messages = builder.build_private_messages(
                 rel, emo, style, history,
                 memory_text=memory_text,
                 boundary_hint=boundary_hint,
+                status_text=status_text,
                 user_message=user_message,
             )
 
@@ -364,6 +374,10 @@ async def group_chat(websocket: WebSocket, group_id: str):
                 group_rel = state.rel_engine.get_summary(char_id)
                 group_emo = state.emo_engine.get_summary(char_id)
                 memory_text = memory_block_for_group(char_id, user_message, group_id)
+                status_text = status_block_for(
+                    char_id, persona, group_rel, group_emo,
+                    user_message=user_message, scope="group", group_name=group_name,
+                )
                 other_names = [
                     state.persona_loader.get_display_name(m)
                     for m in members if m != char_id
@@ -378,6 +392,7 @@ async def group_chat(websocket: WebSocket, group_id: str):
                     history=group_hist,
                     memory_text=memory_text,
                     boundary_hint=boundary_hint,
+                    status_text=status_text,
                     member_ids=list(members),
                     character_id=char_id,
                     persona_loader=state.persona_loader,
@@ -525,6 +540,10 @@ async def group_chat(websocket: WebSocket, group_id: str):
                     group_rel = state.rel_engine.get_summary(char_id)
                     group_emo = state.emo_engine.get_summary(char_id)
                     memory_text = memory_block_for_group(char_id, user_message, group_id)
+                    status_text = status_block_for(
+                        char_id, persona, group_rel, group_emo,
+                        user_message=user_message, scope="group", group_name=group_name,
+                    )
                     other_names = [
                         state.persona_loader.get_display_name(m)
                         for m in members if m != char_id
@@ -535,6 +554,7 @@ async def group_chat(websocket: WebSocket, group_id: str):
                         history=group_hist,
                         memory_text=memory_text,
                         boundary_hint=boundary_hint,
+                        status_text=status_text,
                         member_ids=member_list,
                         prior_replies=prior_in_batch.copy() if prior_in_batch else None,
                         character_id=char_id,
