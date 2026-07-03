@@ -952,3 +952,387 @@ class V3Database:
                 ORDER BY event_date
             """)
         return self._fetchall(cursor)
+
+    # ══════════════════════════════════════════════════
+    # V4 新增 — Life Loop Ticks
+    # ══════════════════════════════════════════════════
+
+    def _create_v4_tables(self):
+        """创建 V4 新增表（desires / intentions / social_relations / attachment_states
+        / life_loop_ticks / visual_profiles / albums / world_events_v4）。"""
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS life_loop_ticks (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                tick_id         TEXT    NOT NULL,
+                state           TEXT    DEFAULT 'running',
+                tick_count      INTEGER DEFAULT 0,
+                duration_ms     REAL    DEFAULT 0,
+                error_count     INTEGER DEFAULT 0,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS desires (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                desire_to_connect   REAL DEFAULT 30,
+                desire_to_express   REAL DEFAULT 20,
+                desire_to_avoid     REAL DEFAULT 5,
+                desire_to_comfort   REAL DEFAULT 15,
+                desire_to_compete   REAL DEFAULT 5,
+                updated_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS intentions (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                intention_type  TEXT    NOT NULL,
+                strength        REAL    DEFAULT 0.1,
+                updated_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                UNIQUE(character_id, intention_type)
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS social_relations (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                from_id         TEXT    NOT NULL,
+                to_id           TEXT    NOT NULL,
+                value           REAL    DEFAULT 0,
+                rel_type        TEXT    DEFAULT 'neutral',
+                updated_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                UNIQUE(from_id, to_id)
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS attachment_states (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL UNIQUE,
+                attachment_style TEXT   DEFAULT 'secure',
+                attachment_level REAL   DEFAULT 30,
+                trust_level     REAL    DEFAULT 40,
+                jealousy_level  REAL    DEFAULT 0,
+                last_interaction TEXT,
+                updated_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS visual_profiles (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL UNIQUE,
+                profile_data    TEXT    NOT NULL DEFAULT '{}',
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+                updated_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS albums (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                character_id    TEXT    NOT NULL,
+                image_path      TEXT    NOT NULL,
+                prompt          TEXT    DEFAULT '',
+                style           TEXT    DEFAULT 'selfie',
+                scene           TEXT    DEFAULT 'bedroom',
+                emotion_tag     TEXT,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS world_events_v4 (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_name      TEXT    NOT NULL,
+                event_type      TEXT    NOT NULL,
+                intensity       REAL    DEFAULT 0.5,
+                emotion_bias_json TEXT   DEFAULT '{}',
+                remaining_ticks INTEGER DEFAULT 0,
+                created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+            )
+        """)
+
+        # 索引
+        self._execute("CREATE INDEX IF NOT EXISTS idx_llt_tick ON life_loop_ticks(tick_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_des_char ON desires(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_int_char ON intentions(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_sr_from ON social_relations(from_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_sr_to ON social_relations(to_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_ast_char ON attachment_states(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_vp_char ON visual_profiles(character_id)")
+        self._execute("CREATE INDEX IF NOT EXISTS idx_alb_char ON albums(character_id)")
+
+        self.commit()
+
+    # ── Desires CRUD ──
+
+    def insert_desire_snapshot(self, character_id: str, desires: dict):
+        """写入/更新欲望快照。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now = "NOW()" if pg else "datetime('now','localtime')"
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO desires (character_id, desire_to_connect, desire_to_express,
+                    desire_to_avoid, desire_to_comfort, desire_to_compete, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT (character_id) DO UPDATE SET
+                    desire_to_connect = EXCLUDED.desire_to_connect,
+                    desire_to_express = EXCLUDED.desire_to_express,
+                    desire_to_avoid = EXCLUDED.desire_to_avoid,
+                    desire_to_comfort = EXCLUDED.desire_to_comfort,
+                    desire_to_compete = EXCLUDED.desire_to_compete,
+                    updated_at = {now}
+            """, (character_id, desires.get("desire_to_connect", 30),
+                  desires.get("desire_to_express", 20), desires.get("desire_to_avoid", 5),
+                  desires.get("desire_to_comfort", 15), desires.get("desire_to_compete", 5)))
+        else:
+            # SQLite UPSERT
+            cursor.execute(f"""
+                INSERT INTO desires (character_id, desire_to_connect, desire_to_express,
+                    desire_to_avoid, desire_to_comfort, desire_to_compete, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT(character_id) DO UPDATE SET
+                    desire_to_connect = excluded.desire_to_connect,
+                    desire_to_express = excluded.desire_to_express,
+                    desire_to_avoid = excluded.desire_to_avoid,
+                    desire_to_comfort = excluded.desire_to_comfort,
+                    desire_to_compete = excluded.desire_to_compete,
+                    updated_at = {now}
+            """, (character_id, desires.get("desire_to_connect", 30),
+                  desires.get("desire_to_express", 20), desires.get("desire_to_avoid", 5),
+                  desires.get("desire_to_comfort", 15), desires.get("desire_to_compete", 5)))
+        self.commit()
+
+    def get_desires(self, character_id: str) -> dict:
+        """获取角色当前欲望。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT * FROM desires WHERE character_id = {ph} ORDER BY updated_at DESC LIMIT 1",
+            (character_id,)
+        )
+        row = self._fetchone(cursor)
+        if row:
+            return {
+                "desire_to_connect": row.get("desire_to_connect", 30),
+                "desire_to_express": row.get("desire_to_express", 20),
+                "desire_to_avoid": row.get("desire_to_avoid", 5),
+                "desire_to_comfort": row.get("desire_to_comfort", 15),
+                "desire_to_compete": row.get("desire_to_compete", 5),
+            }
+        return {}
+
+    # ── Intentions CRUD ──
+
+    def get_intentions(self, character_id: str) -> list:
+        """获取角色所有意图。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT intention_type, strength, updated_at FROM intentions WHERE character_id = {ph}",
+            (character_id,)
+        )
+        return self._fetchall(cursor)
+
+    def upsert_intention(self, character_id: str, intention_type: str, strength: float):
+        """写入或更新意图。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now = "NOW()" if pg else "datetime('now','localtime')"
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO intentions (character_id, intention_type, strength, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {now})
+                ON CONFLICT (character_id, intention_type) DO UPDATE SET
+                    strength = EXCLUDED.strength, updated_at = {now}
+            """, (character_id, intention_type, strength))
+        else:
+            cursor.execute(f"""
+                INSERT INTO intentions (character_id, intention_type, strength, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {now})
+                ON CONFLICT(character_id, intention_type) DO UPDATE SET
+                    strength = excluded.strength, updated_at = {now}
+            """, (character_id, intention_type, strength))
+        self.commit()
+
+    # ── Social Relations CRUD ──
+
+    def upsert_social_relation(self, from_id: str, to_id: str,
+                                value: float, rel_type: str = "neutral"):
+        """写入或更新社交关系。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now = "NOW()" if pg else "datetime('now','localtime')"
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO social_relations (from_id, to_id, value, rel_type, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT (from_id, to_id) DO UPDATE SET
+                    value = EXCLUDED.value, rel_type = EXCLUDED.rel_type, updated_at = {now}
+            """, (from_id, to_id, value, rel_type))
+        else:
+            cursor.execute(f"""
+                INSERT INTO social_relations (from_id, to_id, value, rel_type, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT(from_id, to_id) DO UPDATE SET
+                    value = excluded.value, rel_type = excluded.rel_type, updated_at = {now}
+            """, (from_id, to_id, value, rel_type))
+        self.commit()
+
+    def get_social_relations(self, character_id: str = None) -> list:
+        """获取社交关系。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        if character_id:
+            cursor.execute(f"""
+                SELECT from_id, to_id, value, rel_type FROM social_relations
+                WHERE from_id = {ph} OR to_id = {ph}
+                ORDER BY ABS(value) DESC
+            """, (character_id, character_id))
+        else:
+            cursor.execute("SELECT from_id, to_id, value, rel_type FROM social_relations ORDER BY ABS(value) DESC")
+        return self._fetchall(cursor)
+
+    # ── Attachment States CRUD ──
+
+    def upsert_attachment_state(self, character_id: str, style: str, state: dict):
+        """写入或更新依恋状态。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now = "NOW()" if pg else "datetime('now','localtime')"
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO attachment_states (character_id, attachment_style,
+                    attachment_level, trust_level, jealousy_level, last_interaction, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT (character_id) DO UPDATE SET
+                    attachment_style = EXCLUDED.attachment_style,
+                    attachment_level = EXCLUDED.attachment_level,
+                    trust_level = EXCLUDED.trust_level,
+                    jealousy_level = EXCLUDED.jealousy_level,
+                    last_interaction = EXCLUDED.last_interaction,
+                    updated_at = {now}
+            """, (character_id, style,
+                  state.get("attachment_level", 30), state.get("trust_level", 40),
+                  state.get("jealousy_level", 0), state.get("last_interaction", "")))
+        else:
+            cursor.execute(f"""
+                INSERT INTO attachment_states (character_id, attachment_style,
+                    attachment_level, trust_level, jealousy_level, last_interaction, updated_at)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {now})
+                ON CONFLICT(character_id) DO UPDATE SET
+                    attachment_style = excluded.attachment_style,
+                    attachment_level = excluded.attachment_level,
+                    trust_level = excluded.trust_level,
+                    jealousy_level = excluded.jealousy_level,
+                    last_interaction = excluded.last_interaction,
+                    updated_at = {now}
+            """, (character_id, style,
+                  state.get("attachment_level", 30), state.get("trust_level", 40),
+                  state.get("jealousy_level", 0), state.get("last_interaction", "")))
+        self.commit()
+
+    def get_attachment_state(self, character_id: str) -> dict:
+        """获取角色依恋状态。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT * FROM attachment_states WHERE character_id = {ph}",
+            (character_id,)
+        )
+        return self._fetchone(cursor)
+
+    # ── Visual Profiles CRUD ──
+
+    def upsert_visual_profile(self, character_id: str, profile_data: str):
+        """写入或更新角色视觉档案。"""
+        cursor = self._pg_cursor()
+        pg = self._db_type == "postgres"
+        ph = "%s" if pg else "?"
+        now = "NOW()" if pg else "datetime('now','localtime')"
+        if pg:
+            cursor.execute(f"""
+                INSERT INTO visual_profiles (character_id, profile_data, updated_at)
+                VALUES ({ph}, {ph}, {now})
+                ON CONFLICT (character_id) DO UPDATE SET
+                    profile_data = EXCLUDED.profile_data, updated_at = {now}
+            """, (character_id, profile_data))
+        else:
+            cursor.execute(f"""
+                INSERT INTO visual_profiles (character_id, profile_data, updated_at)
+                VALUES ({ph}, {ph}, {now})
+                ON CONFLICT(character_id) DO UPDATE SET
+                    profile_data = excluded.profile_data, updated_at = {now}
+            """, (character_id, profile_data))
+        self.commit()
+
+    def get_visual_profile(self, character_id: str) -> dict:
+        """获取角色视觉档案。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(
+            f"SELECT * FROM visual_profiles WHERE character_id = {ph}",
+            (character_id,)
+        )
+        return self._fetchone(cursor)
+
+    # ── Albums CRUD ──
+
+    def insert_album_entry(self, character_id: str, image_path: str,
+                            prompt: str = "", style: str = "selfie",
+                            scene: str = "bedroom"):
+        """插入相册条目。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
+            INSERT INTO albums (character_id, image_path, prompt, style, scene)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, image_path, prompt, style, scene))
+        self.commit()
+
+    def get_album(self, character_id: str, limit: int = 20) -> list:
+        """获取角色相册。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
+            SELECT * FROM albums WHERE character_id = {ph}
+            ORDER BY created_at DESC LIMIT {ph}
+        """, (character_id, limit))
+        return self._fetchall(cursor)
+
+    # ── World Events V4 ──
+
+    def insert_world_event_v4(self, event_name: str, event_type: str,
+                               intensity: float = 0.5, emotion_bias: dict = None,
+                               remaining_ticks: int = 0):
+        """插入 V4 世界事件。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        bias_json = json.dumps(emotion_bias or {}, ensure_ascii=False)
+        cursor.execute(f"""
+            INSERT INTO world_events_v4 (event_name, event_type, intensity, emotion_bias_json, remaining_ticks)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph})
+        """, (event_name, event_type, intensity, bias_json, remaining_ticks))
+        self.commit()
+
+    # ── Autonomy Decision (V4 兼容，无 tick_id) ──
+
+    def insert_autonomy_decision_v4(self, character_id: str, decision: str,
+                                     score: float, candidates_json: str = "[]"):
+        """写入 V4 自主决策（无 tick_id 版本）。"""
+        cursor = self._pg_cursor()
+        ph = "%s" if self._db_type == "postgres" else "?"
+        cursor.execute(f"""
+            INSERT INTO autonomy_decisions (tick_id, character_id, action_type, probability, decision, reason)
+            VALUES (0, {ph}, {ph}, {ph}, {ph}, {ph})
+        """, (character_id, decision, score / 100.0, candidates_json, decision))
+        self.commit()

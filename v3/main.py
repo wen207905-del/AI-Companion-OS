@@ -36,7 +36,11 @@ def init_database(db: V3Database):
     """初始化数据库：建表并写入默认数据。"""
     db.connect()
     db.create_tables()
-    print("[V3] 数据库初始化完成（含 Phase 2 表）")
+    try:
+        db._create_v4_tables()
+    except Exception as e:
+        print(f"[V3] V4 表创建失败（非致命）: {e}")
+    print("[V3] 数据库初始化完成（含 Phase 2 + V4 表）")
     return db
 
 
@@ -169,35 +173,54 @@ def create_app(enable_phase2: bool = True):
         rt = RuntimeState.get_instance()
         rt.life_loop_status = "initializing"
 
-        _world_tick = WorldTick(
-            db=_db,
-            tick_interval=TICK_INTERVAL_SECONDS,
-            enable_phase2=enable_phase2,
-            use_scheduler=True,
-        )
-        _world_tick.db.connect()
-        _world_tick.db.create_tables()
-        _world_tick.start()
-
-        rt.life_loop_status = "running"
-        rt.uptime_start = time.time()
-        print("[V3] WorldTick 已启动（APScheduler + Runtime Scheduler 模式）")
-
-        # 初始化 V4 Scheduler（三层调度）
+        # 初始化 V4 LifeKernel（统一生命内核，驱动整个系统）
         try:
-            from v3.runtime.scheduler import V4Scheduler
+            from v3.core.life_kernel import LifeKernel
             from v3.runtime.event_bus import EventBus
 
             bus = EventBus.get_instance()
-            v4_scheduler = V4Scheduler(
+            _life_kernel = LifeKernel(
                 event_bus=bus,
-                world_tick=_world_tick,
                 db=_db,
+                tick_interval=5,
             )
-            v4_scheduler.start()
-            print("[V3] V4 Scheduler 已启动（1min / 5min / 每日0点）")
+            _life_kernel.start()
+            rt.life_loop_status = "running"
+            rt.uptime_start = time.time()
+            print("[V3] LifeKernel 已启动（V4 统一生命内核，interval=5s）")
         except Exception as e:
-            print(f"[V3] V4 Scheduler 启动失败（非致命）: {e}")
+            print(f"[V3] LifeKernel 启动失败（降级到 WorldTick）: {e}")
+            _life_kernel = None
+
+            _world_tick = WorldTick(
+                db=_db,
+                tick_interval=TICK_INTERVAL_SECONDS,
+                enable_phase2=enable_phase2,
+                use_scheduler=True,
+            )
+            _world_tick.db.connect()
+            _world_tick.db.create_tables()
+            _world_tick.start()
+
+            rt.life_loop_status = "running"
+            rt.uptime_start = time.time()
+            print("[V3] WorldTick 已启动（降级模式）")
+
+            # 初始化 V4 Scheduler（三层调度）
+            try:
+                from v3.runtime.scheduler import V4Scheduler
+                bus2 = EventBus.get_instance()
+                v4_scheduler = V4Scheduler(
+                    event_bus=bus2,
+                    world_tick=_world_tick,
+                    db=_db,
+                )
+                v4_scheduler.start()
+                print("[V3] V4 Scheduler 已启动（1min / 5min / 每日0点）")
+            except Exception as e2:
+                print(f"[V3] V4 Scheduler 启动失败（非致命）: {e2}")
+
+        print("[V3] V4 全栈启动完成")
 
     @app.on_event("shutdown")
     async def shutdown():
@@ -472,6 +495,165 @@ def create_app(enable_phase2: bool = True):
                 "upcoming_holidays": upcoming_holidays,
                 "upcoming_db_events": upcoming_db,
                 "current_holiday": ce.get_holiday_name(),
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Life Kernel Status ──
+    @app.get("/api/v4/life/status")
+    async def api_v4_life_status():
+        """V4 LifeKernel 状态查询。
+
+        Returns:
+            {"status":"ok","state":"RUNNING","tick_count":N,"uptime":N,"version":"4.0.0"}
+        """
+        try:
+            from v3.runtime.runtime_state import RuntimeState
+            rt = RuntimeState.get_instance()
+            return {
+                "status": "ok",
+                "state": rt.life_loop_status,
+                "uptime": (time.time() - rt.uptime_start) if rt.uptime_start else 0,
+                "version": "4.0.0",
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Desires API ──
+    @app.get("/api/v4/desires/{char_id}")
+    async def api_v4_desires(char_id: str):
+        """查询角色当前欲望值。
+
+        Returns:
+            5 维欲望向量：connect / express / avoid / comfort / compete
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            desires = _db.get_desires(char_id)
+            return {"character_id": char_id, "desires": desires}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Social Graph API ──
+    @app.get("/api/v4/social")
+    async def api_v4_social(char_id: str = None):
+        """查询社交关系图。
+
+        Query params:
+            char_id (optional): 角色 ID，不传则返回全部关系
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            relations = _db.get_social_relations(char_id)
+            # 构建双向图结构
+            graph = {}
+            for r in relations:
+                key = f"{r['from_id']} → {r['to_id']}"
+                graph[key] = {
+                    "value": r["value"],
+                    "type": r["rel_type"],
+                }
+            return {"relations": graph, "count": len(relations)}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Visual Profile API ──
+    @app.get("/api/v4/visual/profile/{char_id}")
+    async def api_v4_visual_profile(char_id: str):
+        """查询角色视觉身份档案。
+
+        Returns:
+            identity profile JSON（face/body/hair 等固定属性）
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            profile = _db.get_visual_profile(char_id)
+            if profile:
+                return {
+                    "character_id": char_id,
+                    "profile": profile.get("profile_data", "{}"),
+                }
+            return {"character_id": char_id, "profile": "{}", "status": "not_configured"}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Generate Image API ──
+    @app.post("/api/v4/visual/generate")
+    async def api_v4_visual_generate(char_id: str, style: str = "selfie",
+                                      scene: str = "bedroom"):
+        """触发角色图片生成。
+
+        Query params:
+            char_id: 角色 ID (required)
+            style: selfie / candid / mirror / portrait / full_body
+            scene: 场景描述
+
+        Returns:
+            {"status":"queued","request_id":"..."}
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            import uuid
+            request_id = str(uuid.uuid4())[:8]
+
+            # 获取角色身份档案
+            profile = _db.get_visual_profile(char_id)
+
+            # 获取角色当前情绪
+            emotions = {}
+            try:
+                snap = _db.get_latest_emotion_snapshot(char_id)
+                if snap:
+                    emotions = json.loads(snap.get("emotions_json", "{}"))
+            except Exception:
+                pass
+
+            # 构建 prompt
+            prompt_data = {
+                "identity": profile.get("profile_data", "{}") if profile else "{}",
+                "emotion": emotions,
+                "style": style,
+                "scene": scene,
+            }
+
+            # 异步生成（骨架：记录请求，实际生成由 image_pipeline 处理）
+            _db.insert_album_entry(
+                char_id, f"pending:{request_id}",
+                prompt=json.dumps(prompt_data, ensure_ascii=False),
+                style=style, scene=scene,
+            )
+
+            return {
+                "status": "queued",
+                "request_id": request_id,
+                "character_id": char_id,
+                "style": style,
+                "scene": scene,
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── V4: Album API ──
+    @app.get("/api/v4/album/{char_id}")
+    async def api_v4_album(char_id: str, limit: int = 20):
+        """查询角色相册。
+
+        Query params:
+            char_id: 角色 ID (required)
+            limit: 返回数量上限，默认 20
+        """
+        if not _db:
+            return JSONResponse({"error": "数据库未连接"}, status_code=503)
+        try:
+            entries = _db.get_album(char_id, limit)
+            return {
+                "character_id": char_id,
+                "count": len(entries),
+                "album": entries,
             }
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
