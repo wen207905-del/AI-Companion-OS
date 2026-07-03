@@ -354,7 +354,12 @@
     />
   {/if}
 
-  <ChatInput bind:this={chatInputEl} on:send={e => handleSend(e.detail)} disabled={$isWaitingReply || $isStreamingReply} compact={view === 'group'} />
+  <ChatInput
+    bind:this={chatInputEl}
+    on:send={e => handleSend(e.detail)}
+    disabled={$isWaitingReply || $isStreamingReply}
+    compact={view === 'group'}
+  />
 
   <footer class="status-bar" class:group-status={view === 'group'} class:waiting={$isWaitingReply || $isStreamingReply} class:offline={$connectionStatus !== 'connected'}>
     {statusText}

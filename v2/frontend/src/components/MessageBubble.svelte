@@ -21,6 +21,8 @@
   let longPressTimer = null
 
   $: contents = message.content || ''
+  $: contentType = message.contentType || message.content_type || 'text'
+  $: isImage = contentType === 'image'
   $: actionText = getActionText(message.action)
   $: innerThought = message.innerThought || ''
   $: thoughtLabel = characterName ? `${characterName}·内心` : '角色·内心'
@@ -169,7 +171,11 @@
             <span class="action-text">*{actionText}*</span>
           {/if}
           <div class="bubble-content">
-            <ReplyContent content={contents} streaming={message.isStreaming} />
+            {#if isImage}
+              <img class="chat-photo" src={contents} alt="角色照片" loading="lazy" />
+            {:else}
+              <ReplyContent content={contents} streaming={message.isStreaming} />
+            {/if}
           </div>
           {#if hasActions}
             <button type="button" class="more-btn bot-more" on:click={openMenu} aria-label="消息操作">⋯</button>
@@ -322,6 +328,15 @@
     line-height: 1.6;
     word-break: break-word;
     padding-right: 18px;
+  }
+
+  .chat-photo {
+    display: block;
+    max-width: min(280px, 72vw);
+    max-height: 420px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .stream-cursor {

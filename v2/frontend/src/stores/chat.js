@@ -63,6 +63,7 @@ async function loadPrivateHistory(characterId, { replace = true, scopeSeq, view 
       senderType: m.sender_type,
       senderId: m.sender_type,
       content: m.content,
+      contentType: m.content_type || 'text',
       innerThought: m.inner_thought || '',
       timestamp: normalizeTimestamp(m.timestamp),
       edited: !!m.edited,
@@ -361,6 +362,40 @@ function handleMessage(data, view) {
 
   if (data.type === 'typing_end') {
     typingCharacters.update(list => list.filter(c => c.id !== data.character_id))
+    return
+  }
+
+  if (data.type === 'image_generating') {
+    typingCharacters.update(list => {
+      if (list.some(c => c.id === data.character_id)) return list
+      const charList = get(characters)
+      const found = charList.find(c => c.id === data.character_id)
+      return [...list, {
+        id: data.character_id,
+        name: (found?.name || data.character_id) + ' · 发送照片中',
+      }]
+    })
+    return
+  }
+
+  if (data.type === 'image_ready') {
+    isWaitingReply.set(false)
+    typingCharacters.update(list => list.filter(c => c.id !== data.character_id))
+    const charList = get(characters)
+    const found = charList.find(c => c.id === data.character_id)
+    updateSortedMessages(msgs => [...msgs, withNormalizedTimestamp({
+      id: data.message_id,
+      type: 'chat',
+      senderType: 'character',
+      senderId: data.character_id,
+      characterName: found?.name || data.character_id,
+      content: data.url,
+      contentType: 'image',
+      timestamp: Date.now(),
+    })])
+    if (view === 'private') {
+      lastPrivateMsgTimestamp.set(Date.now())
+    }
     return
   }
 
@@ -707,4 +742,22 @@ export function disconnect() {
   isStreamingReply.set(false)
   typingCharacters.set([])
   bindWebSocket(null)
+}
+
+/** Request AI character photo via V4 image engine (private chat only). */
+export function requestCharacterPhoto(hint = '') {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    messages.update(msgs => [...msgs, { type: 'system', content: '未连接，无法生成照片' }])
+    return false
+  }
+  if (currentView !== 'private' || !currentId) {
+    messages.update(msgs => [...msgs, { type: 'system', content: '请在私聊中使用生图' }])
+    return false
+  }
+  ws.send(JSON.stringify({
+    type: 'generate_image',
+    hint: hint || '自然放松的肖像，看向镜头',
+    priority: 'quality',
+  }))
+  return true
 }

@@ -194,5 +194,21 @@ def init_db(conn):
             milestones TEXT DEFAULT '[]',
             updated_at REAL NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS image_albums (
+            job_id TEXT PRIMARY KEY,
+            character_id TEXT NOT NULL,
+            url TEXT NOT NULL DEFAULT '',
+            prompt TEXT NOT NULL,
+            model TEXT NOT NULL,
+            scene TEXT DEFAULT '',
+            style TEXT DEFAULT '',
+            status TEXT DEFAULT 'pending',
+            meta TEXT DEFAULT '{}',
+            created_at REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_image_albums_char
+            ON image_albums(character_id, created_at DESC);
     """)
     conn.commit()

@@ -18,7 +18,7 @@ def load_private_history(db_conn, character_id: str, limit: int = 20) -> list[di
     """Return recent private messages as OpenAI-style role/content pairs (chronological)."""
     cur = db_conn.execute(
         """
-        SELECT sender_type, content
+        SELECT sender_type, content, content_type
         FROM private_messages
         WHERE character_id = ?
         ORDER BY timestamp DESC
@@ -29,6 +29,8 @@ def load_private_history(db_conn, character_id: str, limit: int = 20) -> list[di
     rows = cur.fetchall()
     history: list[dict[str, str]] = []
     for row in reversed(rows):
+        if (row["content_type"] or "text") == "image":
+            continue
         role = "user" if row["sender_type"] == "user" else "assistant"
         content = (row["content"] or "").strip()
         if content:
@@ -40,7 +42,7 @@ def load_private_history_for_api(db_conn, character_id: str, limit: int = 50) ->
     """Return message records for REST API (chronological)."""
     cur = db_conn.execute(
         """
-        SELECT id, sender_type, content, action, inner_thought, timestamp, edited
+        SELECT id, sender_type, content, action, inner_thought, content_type, timestamp, edited
         FROM private_messages
         WHERE character_id = ?
         ORDER BY timestamp DESC
@@ -55,6 +57,7 @@ def load_private_history_for_api(db_conn, character_id: str, limit: int = 50) ->
             "id": row["id"],
             "sender_type": row["sender_type"],
             "content": row["content"],
+            "content_type": row["content_type"] or "text",
             "action": row["action"],
             "inner_thought": row["inner_thought"],
             "timestamp": row["timestamp"],

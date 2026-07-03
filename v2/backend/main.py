@@ -5,15 +5,18 @@ AI Companion OS V2 — FastAPI 主入口
 """
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from api.image_routes import router as image_router
 from api.rest_routes import router as rest_router
 from api.ws_routes import router as ws_router
 from bootstrap import init_all
 from config import SERVER_HOST, SERVER_PORT
+from image.config import IMAGE_OUTPUT_DIR
 from personality.photo_templates import template_dir
 
 
@@ -49,7 +52,12 @@ if _templates.is_dir():
         name="character_templates",
     )
 
+_albums = Path(IMAGE_OUTPUT_DIR)
+_albums.mkdir(parents=True, exist_ok=True)
+app.mount("/static/albums", StaticFiles(directory=str(_albums)), name="albums")
+
 app.include_router(rest_router)
+app.include_router(image_router)
 app.include_router(ws_router)
 
 

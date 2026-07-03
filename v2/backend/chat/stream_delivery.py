@@ -9,6 +9,7 @@ from engine.world_clock import now as world_now
 from api.ws_hub import hub
 from chat.reply_service import generate_reply
 from config import LLM_STREAM
+from image.chat_photo import maybe_deliver_chat_photo, strip_reply_photo_tag
 
 
 async def deliver_character_reply(
@@ -78,6 +79,8 @@ async def deliver_character_reply(
             group_name=group_name or "",
         )
 
+    photo_directive, reply_content = strip_reply_photo_tag(reply_content or "")
+
     ts = world_now()
     if reply_content:
         save_to_db(reply_id, reply_content, action, inner_thought, ts)
@@ -132,5 +135,16 @@ async def deliver_character_reply(
             "character_name": char_name,
             **ws_meta,
         })
+
+    char_id = ws_meta.get("character_id") or ws_meta.get("sender_id")
+    if memory_scope == "private" and char_id:
+        await maybe_deliver_chat_photo(
+            room,
+            character_id=char_id,
+            user_message=user_message,
+            reply_content=reply_content or "",
+            photo_directive=photo_directive,
+            rel_summary=rel_summary,
+        )
 
     return reply_content or ""

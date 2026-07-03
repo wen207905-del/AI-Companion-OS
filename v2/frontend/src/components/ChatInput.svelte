@@ -8,6 +8,7 @@
 
   export let disabled = false
   export let compact = false
+  export let showPhotoButton = false
 
   export function setDraft(text) {
     inputValue = text || ''
@@ -31,10 +32,30 @@
       handleSend()
     }
   }
+  function handlePhoto() {
+    if (disabled) return
+    dispatch('photo')
+  }
 </script>
 
 <div class="chat-input-bar" class:compact>
   <div class="input-wrapper">
+    {#if showPhotoButton}
+      <button
+        type="button"
+        class="photo-btn"
+        title="生成角色照片"
+        aria-label="生成角色照片"
+        disabled={disabled}
+        on:click={handlePhoto}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <circle cx="8.5" cy="10.5" r="1.5" />
+          <path d="M21 16l-5.5-5.5L5 20" />
+        </svg>
+      </button>
+    {/if}
     <textarea
       class="input-field"
       bind:value={inputValue}
@@ -95,6 +116,23 @@
     line-height: 1.5;
   }
   .input-field::placeholder { color: var(--text-muted); }
+
+  .photo-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: rgba(124, 92, 252, 0.15);
+    color: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .photo-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 
   .send-btn {
     width: 36px;

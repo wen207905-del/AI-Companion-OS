@@ -30,6 +30,10 @@ services:
       - LLM_STREAM=${LLM_STREAM:-true}
       - LLM_INNER_THOUGHT=${LLM_INNER_THOUGHT:-true}
       - CONTENT_MODE=${CONTENT_MODE:-unrestricted}
+      - SILICONFLOW_API_KEY=${SILICONFLOW_API_KEY:-}
+      - SILICONFLOW_BASE_URL=${SILICONFLOW_BASE_URL:-https://api.siliconflow.cn/v1}
+      - IMAGE_CONTENT_MODE=${IMAGE_CONTENT_MODE:-unrestricted}
+      - IMAGE_OUTPUT_DIR=/app/data/albums
       - TZ=Asia/Shanghai
     volumes:
       - ./config:/app/config:ro

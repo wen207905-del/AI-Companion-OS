@@ -18,6 +18,7 @@ from chat.group_service import (
     remove_member,
 )
 from config import APP_VERSION, CONTENT_MODE, LLM_STREAM, USER_NAME, USER_NICKNAME
+from image.config import SILICONFLOW_API_KEY, IMAGE_CONTENT_MODE
 from engine.world_clock import snapshot as world_snapshot
 from llm import router as llm_router
 from llm.router import choice_from_dict, is_choice_available
@@ -36,6 +37,11 @@ def health():
         "llm_stream": LLM_STREAM,
         "user": {"name": USER_NAME, "nickname": USER_NICKNAME},
         "llm": llm_router.get_status(),
+        "image": {
+            "enabled": bool(SILICONFLOW_API_KEY),
+            "provider": "siliconflow",
+            "content_mode": IMAGE_CONTENT_MODE,
+        },
         "world_time": world_snapshot(),
     }
 
