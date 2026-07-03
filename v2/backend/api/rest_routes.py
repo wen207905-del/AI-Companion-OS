@@ -22,6 +22,7 @@ from engine.world_clock import snapshot as world_snapshot
 from llm import router as llm_router
 from llm.router import choice_from_dict, is_choice_available
 from personality.body_experience import build_body_experiences
+from personality.photo_templates import get_photo_url, get_photo_template_meta
 
 router = APIRouter()
 
@@ -118,6 +119,7 @@ def list_characters():
             "age": persona.get("base_info", {}).get("age"),
             "arousal": arousal_summary.get("level", 0),
             "arousal_label": arousal_summary.get("label", "平静"),
+            "avatar_url": get_photo_url(pid),
         })
     return {"characters": result}
 
@@ -151,6 +153,7 @@ def get_character(character_id: str):
         "growth": growth,
         "recent_memories": memories,
         "body_experiences": build_body_experiences(persona, rel),
+        "photo_template": get_photo_template_meta(character_id),
     }
 
 

@@ -111,7 +111,12 @@
     <div class="loading">加载中…</div>
   {:else if detail}
     <div class="panel-header">
-      <CharacterAvatar characterId={characterId} size={72} showStatus={true} />
+      <CharacterAvatar
+        characterId={characterId}
+        avatarUrl={detail.photo_template?.photo_url || ''}
+        size={72}
+        showStatus={true}
+      />
       <div class="header-info">
         <h2 class="char-name">{detail.persona?.name || characterId}</h2>
         <span class="char-type-badge">{detail.persona?.type || '未知'}</span>

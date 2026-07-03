@@ -16,6 +16,7 @@
   import ChatInput from '../components/ChatInput.svelte'
   import LlmSelector from '../components/LlmSelector.svelte'
   import CharacterAvatar from '../components/CharacterAvatar.svelte'
+  import { avatarUrlFor } from '../stores/characters.js'
   import GroupManageModal from '../components/GroupManageModal.svelte'
   import ConfirmDialog from '../components/ConfirmDialog.svelte'
   import GroupGameHintsPanel from '../components/GroupGameHintsPanel.svelte'
@@ -148,6 +149,7 @@
       name: c?.name || id,
       love: c?.love,
       arousal: c?.arousal,
+      avatar_url: c?.avatar_url,
     }
   })
   $: chatTitle = view === 'group'
@@ -270,7 +272,12 @@
           <button type="button" class="members-btn" on:click={() => showGroupManage = true} aria-label="管理群成员">
             <span class="avatar-stack">
               {#each groupMembers.slice(0, 3) as mid (mid)}
-                <CharacterAvatar characterId={mid} size={26} showStatus={false} />
+                <CharacterAvatar
+                  characterId={mid}
+                  avatarUrl={avatarUrlFor(mid, $characters)}
+                  size={26}
+                  showStatus={false}
+                />
               {/each}
             </span>
             <span class="members-label">{groupMembers.length}</span>

@@ -6,10 +6,12 @@ function isLocalHost(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
 }
 
-/** Dev 模式统一直连 :8000，PC/手机行为一致，避免 Vite 代理 WS/HTTP 异常。 */
+/** Dev 或直连后端 :8000 时使用绝对 URL；生产经 Nginx 反代时用相对路径。 */
 export function useDirectBackend() {
   if (typeof window === 'undefined') return false
-  return import.meta.env.DEV || !isLocalHost(window.location.hostname)
+  if (import.meta.env.DEV) return true
+  const port = window.location.port
+  return port === '8000' || port === '8000/'
 }
 
 function backendOrigin() {

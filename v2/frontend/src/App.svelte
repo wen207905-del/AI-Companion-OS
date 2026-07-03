@@ -295,7 +295,7 @@
             class:active={$activeCharacterId === char.id && $activeView === 'private'}
             on:click={() => openPrivate(char.id)}
           >
-            <CharacterAvatar characterId={char.id} size={40} />
+            <CharacterAvatar characterId={char.id} avatarUrl={char.avatar_url} size={40} />
             <div class="char-info">
               <span class="char-name">{char.name}</span>
               <span class="char-stage">{char.stage_name}</span>

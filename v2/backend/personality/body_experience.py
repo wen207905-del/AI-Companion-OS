@@ -10,6 +10,7 @@ BODY_PART_CN: dict[str, str] = {
     "inner_thigh": "大腿内侧",
     "lips": "嘴唇",
     "spine": "后背",
+    "back": "后背",
     "hands": "双手",
     "hips": "臀部",
     "belly": "小腹",

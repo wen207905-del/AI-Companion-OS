@@ -1,0 +1,36 @@
+# 角色照片参考模版 — 来源目录：角色模版/
+# 生成人物照片时以对应 template 为外观/风格参考
+
+template_dir: character_templates
+
+characters:
+  ye_ruxue:
+    template: 8f1f128070a0ac7e682e9081e1eba464.jpg
+    note: 冷艳成熟女性参考
+  bai_rou:
+    template: e5d80ebc5b793fa9a66fa0e09c394052.jpg
+    note: 温柔邻家姐姐参考
+  gu_wanqing:
+    template: ba0366a7e909f65fe4b4947768dd5993.jpg
+    note: 清冷知性参考
+  liu_qingning:
+    template: f7a6c0acbbfa4874026ffa30f6ed1047.jpg
+    note: 青春校园风参考
+  shen_man:
+    template: 2665a4fb2e30820cf16003477d255779.jpg
+    note: 慵懒猫系参考
+  mo_xiaoran:
+    template: 8f1f128070a0ac7e682e9081e1eba464.jpg
+  su_nian:
+    template: e5d80ebc5b793fa9a66fa0e09c394052.jpg
+  xingye_liuli:
+    template: ba0366a7e909f65fe4b4947768dd5993.jpg
+  lin_tangtang:
+    template: f7a6c0acbbfa4874026ffa30f6ed1047.jpg
+  hua_li:
+    template: 2665a4fb2e30820cf16003477d255779.jpg
+  xiao_ying:
+    template: e5d80ebc5b793fa9a66fa0e09c394052.jpg
+  wang_dahai:
+    template: null
+    note: 兄弟角色不使用女性外貌模版

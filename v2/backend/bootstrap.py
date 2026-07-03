@@ -48,7 +48,7 @@ def init_all() -> None:
             state.arousal_engine.save_snapshot(pid, "init")
 
     if state.rel_engine:
-        state.rel_engine.ensure_minimum_love(70.0)
+        state.rel_engine.ensure_minimum_love(80.0)
 
     _sync_group_members_from_db()
     _register_event_handler()

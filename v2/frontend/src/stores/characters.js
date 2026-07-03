@@ -1,6 +1,11 @@
 import { writable, get } from 'svelte/store'
 import { apiUrl } from '../lib/api.js'
 
+export function avatarUrlFor(charId, list = get(characters)) {
+  if (!charId) return ''
+  return list.find(c => c.id === charId)?.avatar_url || ''
+}
+
 export const characters = writable([])
 export const groups = writable([])
 export const loading = writable(false)

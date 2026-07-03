@@ -8,6 +8,7 @@
   import MessageActionSheet from './MessageActionSheet.svelte'
   import ReplyContent from './ReplyContent.svelte'
   import CharacterAvatar from './CharacterAvatar.svelte'
+  import { characters, avatarUrlFor } from '../stores/characters.js'
   import { hasActionSegments } from '../lib/replyFormat.js'
   import { formatWorldTime } from '../lib/timestamp.js'
 
@@ -31,6 +32,7 @@
   }
   $: characterName = message.characterName || ''
   $: characterId = message.senderId || message.characterId || ''
+  $: avatarUrl = message.avatarUrl || avatarUrlFor(characterId, $characters)
   $: time = formatTime(message.timestamp)
   $: isPending = !message.id || String(message.id).startsWith('local_')
   $: canEdit = isUser && !disabled && !message.isStreaming && !isPending
@@ -153,7 +155,7 @@
     <div class="bot-row">
       <div class="avatar-slot">
         {#if characterId && characterId !== 'user'}
-          <CharacterAvatar {characterId} size={34} showStatus={false} />
+          <CharacterAvatar {characterId} avatarUrl={avatarUrl} size={34} showStatus={false} />
         {:else}
           <div class="avatar-placeholder">{characterName?.[0] || '?'}</div>
         {/if}

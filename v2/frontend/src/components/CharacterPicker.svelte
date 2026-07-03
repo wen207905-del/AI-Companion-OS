@@ -25,7 +25,7 @@
       class:selected={selected.includes(char.id)}
       on:click={() => toggle(char.id)}
     >
-      <CharacterAvatar characterId={char.id} size={36} showStatus={false} />
+      <CharacterAvatar characterId={char.id} avatarUrl={char.avatar_url} size={36} showStatus={false} />
       <span class="pick-name">{char.name}</span>
       <span class="pick-check">{selected.includes(char.id) ? '✓' : ''}</span>
     </button>

@@ -1,19 +1,20 @@
-# AI-Companion-OS V4 — 生产级多服务编排
+# AI-Companion-OS V2 — 聊天前端 + 后端 API
 services:
 
-  # ── FastAPI 核心服务 ──
   api:
     build:
-      context: ./v3
-      dockerfile: Dockerfile
-    container_name: ai_companion_api
+      context: .
+      dockerfile: v2/backend/Dockerfile
+    container_name: ai_companion_v2_api
     restart: always
-    ports:
-      - "${API_PORT:-8000}:8000"
+    expose:
+      - "8000"
     env_file:
       - .env
     environment:
-      - ENV=production
+      - RESET_WORLD_ON_START=${RESET_WORLD_ON_START:-false}
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8000
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
       - QWEN_API_KEY=${QWEN_API_KEY:-}
@@ -29,75 +30,25 @@ services:
       - LLM_STREAM=${LLM_STREAM:-true}
       - LLM_INNER_THOUGHT=${LLM_INNER_THOUGHT:-true}
       - CONTENT_MODE=${CONTENT_MODE:-unrestricted}
-      - DB_TYPE=${DB_TYPE:-sqlite}
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-ai}
-      - DB_PASSWORD=${DB_PASSWORD:-ai123}
-      - DB_NAME=${DB_NAME:-companion}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - TZ=Asia/Shanghai
-      - HTTP_PROXY=${HTTP_PROXY:-}
-      - HTTPS_PROXY=${HTTPS_PROXY:-}
-      - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
-    depends_on:
-      - postgres
-      - redis
     volumes:
       - ./config:/app/config:ro
-      - ./v3/data:/app/v3/data
-      - ./v3/logs:/app/v3/logs
+      - ./data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 20s
 
-  # ── PostgreSQL 数据库 ──
-  postgres:
-    image: postgres:15-alpine
-    container_name: ai_companion_pg
+  web:
+    build:
+      context: v2/frontend
+      dockerfile: Dockerfile
+    container_name: ai_companion_web
     restart: always
-    environment:
-      POSTGRES_USER: ${DB_USER:-ai}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-ai123}
-      POSTGRES_DB: ${DB_NAME:-companion}
-      TZ: Asia/Shanghai
-      HTTP_PROXY: ${HTTP_PROXY:-}
-      HTTPS_PROXY: ${HTTPS_PROXY:-}
-      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
     ports:
-      - "${DB_EXTERNAL_PORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ai} -d ${DB_NAME:-companion}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ── Redis 缓存 ──
-  redis:
-    image: redis:7-alpine
-    container_name: ai_companion_redis
-    restart: always
-    environment:
-      HTTP_PROXY: ${HTTP_PROXY:-}
-      HTTPS_PROXY: ${HTTPS_PROXY:-}
-      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
-    ports:
-      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-volumes:
-  pgdata:
-  redisdata:
+      - "${WEB_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy

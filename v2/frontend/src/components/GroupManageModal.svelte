@@ -98,7 +98,7 @@
       <div class="member-list">
         {#each memberChars as char (char.id)}
           <div class="member-row">
-            <CharacterAvatar characterId={char.id} size={36} showStatus={false} />
+            <CharacterAvatar characterId={char.id} avatarUrl={char.avatar_url} size={36} showStatus={false} />
             <span class="member-name">{char.name}</span>
             <button
               type="button"

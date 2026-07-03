@@ -2,19 +2,28 @@
   export let characterId = ''
   export let size = 40
   export let showStatus = true
+  export let avatarUrl = ''
 
   $: initial = characterId?.[0]?.toUpperCase() || '?'
-
-  // 根据 id 哈希生成稳定的渐变色
   $: hue = (characterId?.split('').reduce((a, c) => a + c.charCodeAt(0), 0) || 0) % 360
+  $: resolvedUrl = avatarUrl || ''
 </script>
 
 <div class="avatar-wrapper" style="width:{size}px; height:{size}px;">
-  <div class="avatar-circle" style="--hue:{hue}; width:{size}px; height:{size}px;">
-    <span class="avatar-text" style="font-size:{size * 0.4}px;">
-      {initial}
-    </span>
-  </div>
+  {#if resolvedUrl}
+    <img
+      class="avatar-photo"
+      src={resolvedUrl}
+      alt={characterId}
+      style="width:{size}px; height:{size}px;"
+    />
+  {:else}
+    <div class="avatar-circle" style="--hue:{hue}; width:{size}px; height:{size}px;">
+      <span class="avatar-text" style="font-size:{size * 0.4}px;">
+        {initial}
+      </span>
+    </div>
+  {/if}
 
   {#if showStatus}
     <span
@@ -30,6 +39,15 @@
     flex-shrink: 0;
   }
 
+  .avatar-photo {
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    box-shadow:
+      0 0 0 2px var(--bg-secondary),
+      0 0 0 4px hsl(var(--hue, 260), 60%, 50%, 0.25);
+  }
+
   .avatar-circle {
     border-radius: 50%;
     background: linear-gradient(135deg,
@@ -42,7 +60,6 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    /* 渐变边框光环 */
     box-shadow:
       0 0 0 2px var(--bg-secondary),
       0 0 0 4px hsl(var(--hue, 260), 60%, 50%, 0.4);

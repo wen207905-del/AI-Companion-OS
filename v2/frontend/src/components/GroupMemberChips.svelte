@@ -8,7 +8,7 @@
 <div class="chips-scroll" aria-label="群成员状态">
   {#each members as m (m.id)}
     <div class="chip">
-      <CharacterAvatar characterId={m.id} size={22} showStatus={false} />
+      <CharacterAvatar characterId={m.id} avatarUrl={m.avatar_url} size={22} showStatus={false} />
       <span class="chip-name">{m.name}</span>
       {#if m.love != null}
         <span class="chip-stat love">{Math.round(m.love)}</span>
