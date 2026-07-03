@@ -26,6 +26,7 @@ from .config import (
 # ── FastAPI app（延迟创建，命令行模式不需要） ──
 _app: Optional[object] = None
 _world_tick: Optional[object] = None
+_life_kernel: Optional[object] = None
 _db: Optional[V3Database] = None
 
 # ═════════════════════════════════════════════════════════════
@@ -141,7 +142,7 @@ def create_app(enable_phase2: bool = True):
     Args:
         enable_phase2: 是否启用 Phase 2 自主行为链路
     """
-    global _app, _world_tick, _db
+    global _app, _world_tick, _life_kernel, _db
 
     try:
         from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -160,7 +161,7 @@ def create_app(enable_phase2: bool = True):
     # ── 启动事件 ──
     @app.on_event("startup")
     async def startup():
-        global _world_tick, _db
+        global _world_tick, _life_kernel, _db
 
         from .world.world_tick import WorldTick
         from v3.runtime.runtime_state import RuntimeState
@@ -257,7 +258,12 @@ def create_app(enable_phase2: bool = True):
         # 2. LLM 配置检查
         try:
             import os
-            llm_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("DASHSCOPE_API_KEY")
+            llm_key = (
+                os.environ.get("DEEPSEEK_API_KEY")
+                or os.environ.get("QWEN_API_KEY")
+                or os.environ.get("OPENAI_API_KEY")
+                or os.environ.get("DASHSCOPE_API_KEY")
+            )
             if llm_key:
                 health_status["llm"] = "ok"
             else:
@@ -265,7 +271,7 @@ def create_app(enable_phase2: bool = True):
         except Exception:
             health_status["llm"] = "unknown"
 
-        # 3. World Engine 运行状态
+        # 3. World Engine / LifeKernel 运行状态
         try:
             if _world_tick:
                 status = _world_tick.get_status()
@@ -273,6 +279,13 @@ def create_app(enable_phase2: bool = True):
                     health_status["world"] = "ok"
                 else:
                     health_status["world"] = "stopped"
+                    health_status["status"] = "degraded"
+            elif _life_kernel and getattr(_life_kernel, "state", None):
+                from v3.core.life_kernel import KernelState
+                if _life_kernel.state == KernelState.RUNNING:
+                    health_status["world"] = "ok"
+                else:
+                    health_status["world"] = _life_kernel.state.value
                     health_status["status"] = "degraded"
             else:
                 health_status["world"] = "not_started"
@@ -294,7 +307,9 @@ def create_app(enable_phase2: bool = True):
                 health_status["life_loop"] = rt.life_loop_status
         except Exception:
             health_status["life_loop"] = "not_started"
-            # life_loop 首次可能未启动，不降级 status
+
+        if health_status["llm"] == "not_configured":
+            health_status["status"] = "degraded"
 
         return health_status
 

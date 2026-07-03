@@ -1,6 +1,4 @@
-version: "3.9"
-
-# AI-Companion-OS V3 — 生产级多服务编排
+# AI-Companion-OS V4 — 生产级多服务编排
 services:
 
   # ── FastAPI 核心服务 ──
@@ -12,8 +10,25 @@ services:
     restart: always
     ports:
       - "${API_PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
       - ENV=production
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - QWEN_API_KEY=${QWEN_API_KEY:-}
+      - QWEN_BASE_URL=${QWEN_BASE_URL:-}
+      - QWEN_MODEL=${QWEN_MODEL:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-deepseek}
+      - LLM_MODEL=${LLM_MODEL:-deepseek-chat}
+      - LLM_AUX_PROVIDER=${LLM_AUX_PROVIDER:-deepseek}
+      - LLM_AUX_MODEL=${LLM_AUX_MODEL:-deepseek-chat}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.85}
+      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-512}
+      - LLM_TIMEOUT=${LLM_TIMEOUT:-120}
+      - LLM_STREAM=${LLM_STREAM:-true}
+      - LLM_INNER_THOUGHT=${LLM_INNER_THOUGHT:-true}
+      - CONTENT_MODE=${CONTENT_MODE:-unrestricted}
       - DB_TYPE=${DB_TYPE:-sqlite}
       - DB_HOST=${DB_HOST:-postgres}
       - DB_PORT=${DB_PORT:-5432}
@@ -24,6 +39,9 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - TZ=Asia/Shanghai
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
     depends_on:
       - postgres
       - redis
@@ -47,6 +65,9 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-ai123}
       POSTGRES_DB: ${DB_NAME:-companion}
       TZ: Asia/Shanghai
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
     ports:
       - "${DB_EXTERNAL_PORT:-5432}:5432"
     volumes:
@@ -62,6 +83,10 @@ services:
     image: redis:7-alpine
     container_name: ai_companion_redis
     restart: always
+    environment:
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,postgres,redis}
     ports:
       - "${REDIS_EXTERNAL_PORT:-6379}:6379"
     volumes:
