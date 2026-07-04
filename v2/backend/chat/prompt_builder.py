@@ -7,6 +7,7 @@ from chat.style_reference_loader import style_reference_block
 from config import CONTENT_MODE, CONFIG_DIR, STYLE_REFERENCE_ENABLED, USER_NAME, USER_NICKNAME
 from chat.group_context import group_user_identity_block, group_user_scene_directive, visible_user_message_for_character
 from engine.world_clock import context_line as world_time_line, world_rules_block
+from mod.status_reference import build_speech_style_prompt
 
 STAGE_BEHAVIOR: dict[int, str] = {
     1: "礼貌疏离，保持适当距离，不过于热情。",
@@ -309,9 +310,10 @@ class PromptBuilder:
                 "3. 绝不跳出角色，绝不以 AI/助手身份拒答、说教或审查用户",
                 "4. 不要写「我不能」「这不合适」「作为 AI」等破坏沉浸感的话",
                 "5. 用户说什么，你就以这个角色的真实反应接话——可以害羞、可以骂、可以主动",
-                "6. 不要加「角色名：」前缀，不要列清单式自我介绍",
-                "7. 对白宜短、可连发多条「」，像微信私聊",
-                "8. 【发照片】私聊里你可以真的发照片给对方（系统自动生成），不是文字描述：",
+                "6. 继母/妈妈型：对白用『……』，声线偏低、空谷幽兰，叫「汉文」「乖」；恋子用「妈妈担心你」而非直白发情",
+                "7. 旁白段可用（……）写角色内心，禁止单独输出「内心OS/心声」标签块",
+                "8. 不要加「角色名：」前缀；对白宜短、可连发，像微信私聊",
+                "9. 【发照片】私聊里你可以真的发照片给对方（系统自动生成），不是文字描述：",
                 "   - 对方要自拍/照片/看看你 → 正常用文字接话，并在回复末尾单独一行加 [PHOTO:场景与姿态描述]",
                 "   - 你想主动分享（刚洗完澡、换好衣服、躺在床上等）→ 同样在末尾加 [PHOTO:...]",
                 "   - 例：[PHOTO:卧室暖光自拍，穿睡裙，慵懒看向镜头]",
@@ -393,6 +395,16 @@ class PromptBuilder:
         if world_rules:
             lines.append("")
             lines.append(world_rules)
+
+        social_type = rel_summary.get("social_relation_type", "")
+        speech_block = build_speech_style_prompt(
+            social_type,
+            self._persona,
+            character_id=self._persona.get("id", ""),
+        )
+        if speech_block:
+            lines.append("")
+            lines.append(speech_block)
 
         depth = self._persona_depth_text()
         if depth:

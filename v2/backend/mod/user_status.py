@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from config import USER_NAME, USER_NICKNAME, load_user_profile
 from mod.config_loader import load_manifest
+from mod.status_reference import build_user_reference_block, reference_enabled
 
 
 def build_user_status_block(
@@ -70,6 +71,11 @@ def build_user_status_block(
     hidden = personality.get("hidden")
     if hidden and character_id in ("ye_ruxue", "bai_rou", "gu_wanqing"):
         lines.append(f"（未言明）{str(hidden)[:90]}")
+
+    if reference_enabled():
+        ref = build_user_reference_block(user_message)
+        if ref:
+            return ref
 
     return "\n".join(lines)
 

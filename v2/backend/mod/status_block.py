@@ -10,6 +10,11 @@ from engine.world_clock import LOCATION, snapshot
 from mod.config_loader import load_manifest, mod_variant
 from mod.outfit_state import infer_outfit, organ_status_text, _is_female
 from mod.reproductive import cycle_state, pregnancy_probability
+from mod.status_reference import (
+    build_character_reference_block,
+    build_meter_bars,
+    reference_enabled,
+)
 from mod.user_status import build_user_status_block
 from personality.body_experience import build_body_experiences
 
@@ -215,6 +220,14 @@ def _build_v4(
     if user_block:
         parts.append(user_block)
 
+    if reference_enabled():
+        ref_block = build_character_reference_block(
+            character_id, persona, rel_summary, emo_summary,
+            user_message=user_message, scene_hint=user_message,
+        )
+        if ref_block:
+            parts.append(ref_block)
+
     parts.append("（以上状态栏供你内化表现，勿逐条朗读或像报表一样复述。）")
     return "\n".join(parts) + _word_limit_suffix(cfg)
 
@@ -337,6 +350,19 @@ def build_scene_participant_block(
         lines.append(
             f"  发情：{arousal_summary.get('level', 0):.0f}/100（{arousal_summary.get('label', '')}）"
         )
+
+    meters = build_meter_bars(rel_summary, emo_summary)
+    if meters:
+        lines.append(f"  {meters}")
+
+    if reference_enabled():
+        ref = build_character_reference_block(
+            character_id, persona, rel_summary, emo_summary,
+            user_message=user_message, scene_hint=scene_hint or user_message,
+        )
+        if ref:
+            lines.append(ref)
+        return "\n".join(lines)
 
     if (cfg.get("female") or {}).get("organ_detail", True) and _is_female(persona):
         organ = organ_status_text(persona, rel_summary)

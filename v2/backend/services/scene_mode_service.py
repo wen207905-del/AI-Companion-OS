@@ -12,6 +12,7 @@ from config import CONFIG_DIR, CONTENT_MODE, USER_NAME
 from engine.world_clock import context_line as world_time_line, world_rules_block
 from llm import router as llm_router
 from mod.status_block import build_scene_participant_block
+from mod.status_reference import build_speech_style_prompt, build_user_reference_block
 from mod.user_status import build_user_status_block
 from services.speaker_resolver import build_participant_labels, detect_participants
 from services.social_relation_service import enrich_relationship_summary, get_relation_meta
@@ -127,7 +128,7 @@ def build_scene_messages(
     rules = world_rules_block()
     if rules:
         extras.append(rules)
-    user_block = build_user_status_block(
+    user_block = build_user_reference_block(scene_text) or build_user_status_block(
         active_character_id or (participants[0] if participants else ""),
         user_message=scene_text,
     )
@@ -136,6 +137,20 @@ def build_scene_messages(
     unrestricted = _unrestricted_scene_rules()
     if unrestricted:
         extras.append(unrestricted)
+
+    if participants and state.persona_loader:
+        speech_blocks: list[str] = []
+        for pid in participants:
+            persona = state.persona_loader.get(pid) or {}
+            meta = get_relation_meta(state.db, pid) if state.db else {}
+            stype = meta.get("social_relation_type", "romance")
+            speech = build_speech_style_prompt(stype, persona, character_id=pid)
+            if not speech:
+                continue
+            name = state.persona_loader.get_display_name(pid)
+            speech_blocks.append(f"【{name}】\n{speech}")
+        if speech_blocks:
+            extras.append("【在场角色对白风格】\n" + "\n\n".join(speech_blocks))
 
     system += "\n\n" + "\n\n".join(extras)
     user = f"{USER_NAME}描述的场景：\n{scene_text.strip()}\n\n请只输出 JSON。"

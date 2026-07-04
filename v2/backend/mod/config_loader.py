@@ -12,6 +12,8 @@ from config import CONFIG_DIR
 _MANIFEST = CONFIG_DIR / "status_mod" / "manifest.yaml"
 _OUTFITS = CONFIG_DIR / "status_mod" / "outfits.yaml"
 _ALIASES = CONFIG_DIR / "status_mod" / "scene_aliases.yaml"
+_SPEECH = CONFIG_DIR / "status_mod" / "speech_styles.yaml"
+_ORGAN = CONFIG_DIR / "status_mod" / "organ_detail.yaml"
 
 
 @lru_cache(maxsize=1)
@@ -37,6 +39,24 @@ def load_scene_aliases() -> dict:
     if not _ALIASES.is_file():
         return {}
     with open(_ALIASES, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return data if isinstance(data, dict) else {}
+
+
+@lru_cache(maxsize=1)
+def load_speech_styles() -> dict:
+    if not _SPEECH.is_file():
+        return {}
+    with open(_SPEECH, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return data if isinstance(data, dict) else {}
+
+
+@lru_cache(maxsize=1)
+def load_organ_detail() -> dict:
+    if not _ORGAN.is_file():
+        return {}
+    with open(_ORGAN, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     return data if isinstance(data, dict) else {}
 
