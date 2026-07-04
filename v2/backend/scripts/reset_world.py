@@ -77,6 +77,8 @@ def main() -> None:
     _seed_initial_state(conn)
     conn.close()
     print("[reset] 完成 — 聊天记录已清空，角色已回归初始状态")
+    print("[reset] 重要：请重启 API 使运行中的服务重新加载数据库：")
+    print("[reset]   docker compose restart api")
 
 
 if __name__ == "__main__":

@@ -59,5 +59,5 @@ def test_ye_ruxue_mentor_not_lover_stage(memory_db):
         "SELECT social_relation_label, affection_grade FROM character_user_relation WHERE character_id = ?",
         ("ye_ruxue",),
     ).fetchone()
-    assert row["social_relation_label"] == "成熟引导者"
+    assert row["social_relation_label"] == "继母·恋子"
     assert row["affection_grade"] == "在意"
