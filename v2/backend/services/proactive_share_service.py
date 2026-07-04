@@ -24,6 +24,8 @@ from services.daily_life_service import (
     maybe_refresh_activity,
 )
 from services.social_relation_service import enrich_relationship_summary, get_relation_meta
+from services.emotion_tick import commit_emotion_delta, push_emotion_update
+from services.character_dm_service import record_proactive_message
 from engine import absence as absence_helpers
 
 logger = logging.getLogger("companion.proactive_share")
@@ -402,7 +404,7 @@ async def send_proactive_message(
     )
 
     if state.emo_engine:
-        from services.emotion_tick import commit_emotion_delta, push_emotion_update
+        record_proactive_message(candidate.character_id)
         emo_delta = commit_emotion_delta(
             candidate.character_id,
             {"happy": 1.5, "miss_user": -2.0},

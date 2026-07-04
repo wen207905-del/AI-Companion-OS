@@ -132,6 +132,11 @@ async def handle_private_scene(
     })
 
     from services.emotion_tick import apply_scene_event_emotions, push_emotion_update
+    from services.character_dm_service import record_scene_participants
+    record_scene_participants(
+        result.get("participants") or participants,
+        source_character_id=character_id,
+    )
     applied_map = apply_scene_event_emotions(result.get("events") or [])
     for cid, emo_delta in applied_map.items():
         emo = state.emo_engine.get_summary(cid) if state.emo_engine else {}

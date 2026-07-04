@@ -19,6 +19,7 @@ export const lastStatUpdate = writable(null)
 export const typingCharacters = writable([])
 export const isStreamingReply = writable(false)
 export const chatMode = writable('chat')
+export const dmListVersion = writable(0)
 
 let ws = null
 let reconnectTimer = null
@@ -342,6 +343,11 @@ function handleMessage(data, view) {
       ts: Date.now(),
     })
     patchCharacterInList(data.character_id, null, data.emotion, null)
+    return
+  }
+
+  if (data.type === 'character_dm_created') {
+    dmListVersion.update(v => v + 1)
     return
   }
 

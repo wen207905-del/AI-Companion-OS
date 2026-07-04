@@ -18,6 +18,7 @@ from event.event_bus import event_bus
 from memory.memory_manager import MemoryManager
 from personality.persona_loader import PersonaLoader
 from services.social_relation_service import enrich_relationship_summary, seed_all_characters
+from services.character_relation_service import seed_from_personas
 
 
 def init_all() -> None:
@@ -59,6 +60,9 @@ def init_all() -> None:
             for pid in state.persona_loader.personas.keys():
                 if pid in state.rel_engine.states:
                     state.rel_engine.save_snapshot(pid, "v4_1_init")
+
+    if state.db and state.persona_loader:
+        seed_from_personas(state.db, state.persona_loader, force=False)
 
     _sync_group_members_from_db()
     _register_event_handler()

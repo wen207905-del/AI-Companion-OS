@@ -30,6 +30,8 @@
   import CharacterPanel from './pages/CharacterPanel.svelte'
   import MobileCharacterDetail from './pages/MobileCharacterDetail.svelte'
   import Dashboard from './pages/Dashboard.svelte'
+  import CharacterDmList from './pages/CharacterDmList.svelte'
+  import CharacterDmDetail from './pages/CharacterDmDetail.svelte'
   import ConfirmDialog from './components/ConfirmDialog.svelte'
 
   let showRightPanel = writable(true)
@@ -46,6 +48,7 @@
   let backendOnline = true
   let backendCheckTimer = null
   let actionError = ''
+  let activeDmId = null
 
   $: wsConnected = $connectionStatus === 'connected'
   $: filteredCharacters = $characters.filter(c =>
@@ -182,14 +185,32 @@
   async function openPrivate(charId) {
     drawerOpen = false
     actionError = ''
+    activeDmId = null
     activeCharacterId.set(charId)
     activeView.set('private')
     mobileTab = 'chat'
     connect('private', charId)
   }
 
+  function openCharacterDmList() {
+    drawerOpen = false
+    actionError = ''
+    activeDmId = null
+    activeView.set('character_dm')
+    mobileTab = 'character_dm'
+  }
+
+  function openCharacterDmDetail(e) {
+    activeDmId = e.detail.id
+  }
+
+  function backFromCharacterDm() {
+    activeDmId = null
+  }
+
   async function openGroup(groupId) {
     drawerOpen = false
+    activeDmId = null
     activeView.set('group')
     activeCharacterId.set(null)
     mobileTab = 'chat'
@@ -230,7 +251,11 @@
       drawerOpen = true
     } else if (tab === 'overview') {
       drawerOpen = false
+      activeDmId = null
       activeView.set('dashboard')
+    } else if (tab === 'character_dm') {
+      drawerOpen = false
+      openCharacterDmList()
     } else if (tab === 'detail') {
       drawerOpen = false
     } else {
@@ -336,6 +361,12 @@
             >×</button>
           </div>
         {/each}
+
+        <button type="button" class="char-dm-entry" on:click={openCharacterDmList}>
+          <span class="group-icon">🕸️</span>
+          <span class="group-name">角色私聊</span>
+          <span class="group-count">旁观</span>
+        </button>
       </div>
     {/if}
   </aside>
@@ -343,6 +374,12 @@
   <main class="main-area">
     {#if isMobile && mobileTab === 'detail'}
       <MobileCharacterDetail initialId={$activeCharacterId} />
+    {:else if $activeView === 'character_dm'}
+      {#if activeDmId}
+        <CharacterDmDetail conversationId={activeDmId} on:back={backFromCharacterDm} />
+      {:else}
+        <CharacterDmList on:select={openCharacterDmDetail} />
+      {/if}
     {:else if $activeView === 'dashboard' || (isMobile && mobileTab === 'overview')}
       <Dashboard />
     {:else if $activeView === 'group' && $activeGroupId}
@@ -392,6 +429,10 @@
       <button type="button" class:active={mobileTab === 'overview'} on:click={() => switchMobileTab('overview')}>
         <span class="nav-icon">📊</span>
         <span>总览</span>
+      </button>
+      <button type="button" class:active={mobileTab === 'character_dm' || $activeView === 'character_dm'} on:click={() => switchMobileTab('character_dm')}>
+        <span class="nav-icon">🕸️</span>
+        <span>私聊网</span>
       </button>
     </nav>
   {/if}
@@ -660,6 +701,25 @@
   .group-count {
     font-size: 0.7rem;
     color: var(--text-muted);
+  }
+
+  .char-dm-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: transparent;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    border: 1px dashed rgba(124, 92, 252, 0.25);
+  }
+
+  .char-dm-entry:hover {
+    background: rgba(124, 92, 252, 0.08);
+    color: var(--accent-light);
   }
 
   .main-area {

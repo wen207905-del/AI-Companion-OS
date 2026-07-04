@@ -9,6 +9,7 @@ from app_state import state
 from engine.absence import hours_since_last_user_message
 from services.emotion_tick import run_emotion_tick
 from services.proactive_share_service import run_proactive_tick
+from services.character_dm_service import run_character_dm_tick
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ class LifeScheduler:
 
         await run_emotion_tick()
         await run_proactive_tick()
+        await run_character_dm_tick()
 
 
 _scheduler: LifeScheduler | None = None

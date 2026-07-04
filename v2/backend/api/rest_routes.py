@@ -383,3 +383,22 @@ async def api_v4_scene(body: dict):
     from services.scene_mode_service import generate_scene_response
     result = await generate_scene_response(text, body.get("llm"))
     return result
+
+
+@router.get("/api/v4/character-dm/list")
+def api_character_dm_list():
+    from services.character_dm_service import list_conversations
+    if not state.db:
+        return {"conversations": []}
+    return {"conversations": list_conversations(state.db)}
+
+
+@router.get("/api/v4/character-dm/{conversation_id}")
+def api_character_dm_detail(conversation_id: str):
+    from services.character_dm_service import get_conversation_detail
+    if not state.db:
+        raise HTTPException(status_code=503, detail="db unavailable")
+    detail = get_conversation_detail(state.db, conversation_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="conversation not found")
+    return detail
