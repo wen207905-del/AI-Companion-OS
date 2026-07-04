@@ -51,7 +51,7 @@ if missing:
 # spot checks from relationship_init.yaml
 checks = {
     "wang_dahai": ("兄弟", "铁哥们", True),
-    "ye_ruxue": ("成熟引导者", "在意", False),
+    "ye_ruxue": ("继母·恋子", "在意", False),
     "bai_rou": ("老婆型伴侣", "深恋", False),
 }
 for cid, (rel, grade, friendship) in checks.items():
