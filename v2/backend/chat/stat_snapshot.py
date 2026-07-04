@@ -17,7 +17,7 @@ REL_NUMERIC_KEYS = [
 EMO_NUMERIC_KEYS = [
     "happy", "calm", "stressed", "tired", "lonely",
     "excited", "embarrassed", "shy", "suspicious",
-    "sad", "angry", "fearful",
+    "sad", "angry", "fearful", "miss_user", "jealous",
 ]
 
 

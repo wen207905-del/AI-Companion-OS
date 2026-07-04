@@ -25,8 +25,16 @@ from llm import router as llm_router
 from llm.router import choice_from_dict, is_choice_available
 from personality.body_experience import build_body_experiences
 from personality.photo_templates import get_photo_url, get_photo_template_meta
+from services.social_relation_service import enrich_relationship_summary
 
 router = APIRouter()
+
+
+def _rel_summary(character_id: str) -> dict:
+    raw = state.rel_engine.get_summary(character_id)
+    if state.db is None:
+        return raw
+    return enrich_relationship_summary(state.db, character_id, raw)
 
 
 @router.get("/api/health")
@@ -102,7 +110,7 @@ def set_llm_pref(scope_type: str, scope_id: str, body: dict):
 def list_characters():
     result = []
     for pid, persona in state.persona_loader.personas.items():
-        summary = state.rel_engine.get_summary(pid)
+        summary = _rel_summary(pid)
         emo_summary = state.emo_engine.get_summary(pid)
         arousal_summary = (
             state.arousal_engine.get_summary(pid)
@@ -116,6 +124,13 @@ def list_characters():
             "stage": summary.get("stage", 1),
             "stage_name": summary.get("stage_name", "陌生人"),
             "love": summary.get("love", 0),
+            "social_relation_label": summary.get("social_relation_label", ""),
+            "social_relation_type": summary.get("social_relation_type", ""),
+            "affection_score": summary.get("affection_score"),
+            "affection_grade": summary.get("affection_grade", ""),
+            "affection_label": summary.get("affection_label", ""),
+            "current_activity": summary.get("current_activity", "日常"),
+            "is_friendship": summary.get("is_friendship", False),
             "mood": emo_summary.get("primary_mood", "平静"),
             "gender": persona.get("base_info", {}).get("gender", ""),
             "occupation": (
@@ -137,7 +152,7 @@ def get_character(character_id: str):
     if not persona:
         raise HTTPException(status_code=404, detail="character not found")
 
-    rel = state.rel_engine.get_summary(character_id)
+    rel = _rel_summary(character_id)
     emo = state.emo_engine.get_summary(character_id)
     arousal = (
         state.arousal_engine.get_summary(character_id)
@@ -285,7 +300,7 @@ def api_delete_group(group_id: str, background_tasks: BackgroundTasks):
 def dashboard():
     characters = []
     for pid in state.persona_loader.personas:
-        rel = state.rel_engine.get_summary(pid)
+        rel = _rel_summary(pid)
         emo = state.emo_engine.get_summary(pid)
         growth = state.growth_engine.get_profile(pid) if state.growth_engine else {}
         characters.append({
@@ -294,6 +309,10 @@ def dashboard():
             "stage": rel.get("stage", 1),
             "stage_name": rel.get("stage_name", "陌生人"),
             "love": rel.get("love", 0),
+            "social_relation_label": rel.get("social_relation_label", ""),
+            "affection_grade": rel.get("affection_grade", ""),
+            "affection_label": rel.get("affection_label", ""),
+            "current_activity": rel.get("current_activity", "日常"),
             "mood": emo.get("primary_mood", "平静"),
             "happy": emo.get("happy", 50),
             "level": growth.get("level", 1),
@@ -305,3 +324,81 @@ def dashboard():
         "active_group_chats": len(state.group_members),
         "characters": characters,
     }
+
+
+@router.get("/api/v4/mode")
+def get_mode():
+    from services.mode_settings import get_user_mode
+    return {"mode": get_user_mode(state.db)}
+
+
+@router.put("/api/v4/mode")
+def put_mode(body: dict):
+    from services.mode_settings import set_user_mode
+    mode = set_user_mode(
+        state.db,
+        body.get("mode") or "chat",
+        active_character_id=body.get("active_character_id"),
+    )
+    return {"mode": mode}
+
+
+@router.post("/api/v4/chat")
+async def api_v4_chat(body: dict):
+    character_id = (body.get("character_id") or "").strip()
+    message = (body.get("message") or "").strip()
+    if not character_id or not message:
+        raise HTTPException(status_code=400, detail="character_id and message required")
+    persona = state.persona_loader.get(character_id)
+    if not persona:
+        raise HTTPException(status_code=404, detail="character not found")
+
+    from chat.private_mode_handler import build_private_llm_messages
+    from chat.reply_service import generate_reply
+
+    llm_messages = build_private_llm_messages(character_id, persona, message)
+    rel = _rel_summary(character_id)
+    content, action, inner_thought = await generate_reply(
+        llm_messages,
+        persona,
+        rel_summary=rel,
+        structured_chat=True,
+        user_message=message,
+    )
+    return {
+        "mode": "chat",
+        "speaker": character_id,
+        "action": action.get("text") if isinstance(action, dict) else "",
+        "dialogue": content,
+        "inner_thought": inner_thought,
+        "action_obj": action,
+    }
+
+
+@router.post("/api/v4/scene")
+async def api_v4_scene(body: dict):
+    text = (body.get("text") or body.get("message") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text required")
+    from services.scene_mode_service import generate_scene_response
+    result = await generate_scene_response(text, body.get("llm"))
+    return result
+
+
+@router.get("/api/v4/character-dm/list")
+def api_character_dm_list():
+    from services.character_dm_service import list_conversations
+    if not state.db:
+        return {"conversations": []}
+    return {"conversations": list_conversations(state.db)}
+
+
+@router.get("/api/v4/character-dm/{conversation_id}")
+def api_character_dm_detail(conversation_id: str):
+    from services.character_dm_service import get_conversation_detail
+    if not state.db:
+        raise HTTPException(status_code=503, detail="db unavailable")
+    detail = get_conversation_detail(state.db, conversation_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="conversation not found")
+    return detail

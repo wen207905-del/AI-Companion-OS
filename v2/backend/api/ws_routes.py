@@ -14,7 +14,15 @@ from chat.context_builder import boundary_hint_for, memory_block_for, memory_blo
 from chat.group_service import maybe_run_character_chain
 from chat.history_loader import load_group_history_for_character, load_private_history
 from chat.message_service import MessageError
+from chat.private_mode_handler import (
+    build_private_llm_messages,
+    handle_private_scene,
+    resolve_private_mode,
+)
 from chat.prompt_builder import PromptBuilder
+from services.emotion_tick import apply_user_message_emotion, push_emotion_update
+from services.mode_settings import get_user_mode, set_user_mode
+from services.social_relation_service import enrich_relationship_summary
 from chat.regenerate_service import prepare_group_regenerate, prepare_private_regenerate
 from chat.reply_service import decide_responders, resolve_llm_choice
 from chat.stream_delivery import deliver_character_reply
@@ -43,7 +51,9 @@ async def private_chat(websocket: WebSocket, character_id: str):
         return
 
     display_name = persona.get("name", character_id)
-    rel = state.rel_engine.get_summary(character_id)
+    rel = enrich_relationship_summary(
+        state.db, character_id, state.rel_engine.get_summary(character_id),
+    )
     emo = state.emo_engine.get_summary(character_id)
     init_llm = llm_prefs.get_pref(state.db, "private", character_id)
     if not init_llm:
@@ -62,11 +72,12 @@ async def private_chat(websocket: WebSocket, character_id: str):
         "character": {
             "id": character_id,
             "name": display_name,
-            "stage_name": rel.get("stage_name", "陌生人"),
+            "stage_name": rel.get("affection_grade") or rel.get("stage_name", "陌生人"),
             "mood": emo.get("primary_mood", "平静"),
         },
         "llm": init_llm,
         "world_time": world_snapshot(),
+        "mode": get_user_mode(state.db),
     })
 
     try:
@@ -77,6 +88,15 @@ async def private_chat(websocket: WebSocket, character_id: str):
             if data.get("type") == "set_llm":
                 llm_choice = resolve_llm_choice(data, "private", character_id)
                 await emit({"type": "llm_updated", "llm": llm_choice})
+                continue
+
+            if data.get("type") == "set_mode":
+                mode = set_user_mode(
+                    state.db,
+                    data.get("mode") or "chat",
+                    active_character_id=character_id,
+                )
+                await emit({"type": "mode_updated", "mode": mode})
                 continue
 
             if data.get("type") == "regenerate":
@@ -111,22 +131,11 @@ async def private_chat(websocket: WebSocket, character_id: str):
                     boundary_hint = boundary_hint + "\n\n" + regen_hint
                 else:
                     boundary_hint = regen_hint
-                rel = state.rel_engine.get_summary(character_id)
-                emo = state.emo_engine.get_summary(character_id)
-                style = state.persona_loader.get_chat_style(character_id)
-                history = load_private_history(state.db, character_id, limit=30)
-                memory_text = memory_block_for(character_id, user_message, scope="private")
-                status_text = status_block_for(
-                    character_id, persona, rel, emo,
-                    user_message=user_message, scope="private",
+                rel = enrich_relationship_summary(
+                    state.db, character_id, state.rel_engine.get_summary(character_id),
                 )
-                builder = PromptBuilder(persona)
-                llm_messages = builder.build_private_messages(
-                    rel, emo, style, history,
-                    memory_text=memory_text,
-                    boundary_hint=boundary_hint,
-                    status_text=status_text,
-                    user_message=user_message,
+                llm_messages = build_private_llm_messages(
+                    character_id, persona, user_message, boundary_hint=boundary_hint,
                 )
 
                 def _save_private_regen(rid, content, action, inner_thought, ts):
@@ -153,6 +162,7 @@ async def private_chat(websocket: WebSocket, character_id: str):
                         "sender_id": character_id,
                     },
                     save_to_db=_save_private_regen,
+                    structured_chat=True,
                 )
                 await emit({
                     "type": "typing_end",
@@ -193,21 +203,19 @@ async def private_chat(websocket: WebSocket, character_id: str):
             )
             event_bus.dispatch(event)
 
-            stat_payload = build_stat_update(
-                character_id,
-                rel_before,
-                state.rel_engine.get_summary(character_id),
-                emo_before,
-                state.emo_engine.get_summary(character_id),
-                growth_before,
-                state.growth_engine.get_profile(character_id)
-                if state.growth_engine
-                else None,
-                arousal_before,
-                state.arousal_engine.get_summary(character_id)
-                if state.arousal_engine
-                else None,
+            rel_enriched = enrich_relationship_summary(
+                state.db, character_id, state.rel_engine.get_summary(character_id),
             )
+            user_emo_delta = apply_user_message_emotion(
+                character_id, user_message, rel_enriched,
+            )
+            if user_emo_delta:
+                await push_emotion_update(
+                    character_id,
+                    user_emo_delta,
+                    state.emo_engine.get_summary(character_id),
+                    room=room,
+                )
 
             client_id = data.get("client_id")
             await emit({
@@ -220,22 +228,40 @@ async def private_chat(websocket: WebSocket, character_id: str):
             })
 
             boundary_hint = boundary_hint_for(persona, user_message, character_id)
-            rel = state.rel_engine.get_summary(character_id)
-            emo = state.emo_engine.get_summary(character_id)
-            style = state.persona_loader.get_chat_style(character_id)
-            history = load_private_history(state.db, character_id, limit=30)
-            memory_text = memory_block_for(character_id, user_message, scope="private")
-            status_text = status_block_for(
-                character_id, persona, rel, emo,
-                user_message=user_message, scope="private",
+            mode = resolve_private_mode(user_message, data.get("mode"))
+            rel = enrich_relationship_summary(
+                state.db, character_id, state.rel_engine.get_summary(character_id),
             )
-            builder = PromptBuilder(persona)
-            llm_messages = builder.build_private_messages(
-                rel, emo, style, history,
-                memory_text=memory_text,
-                boundary_hint=boundary_hint,
-                status_text=status_text,
-                user_message=user_message,
+
+            if mode == "scene":
+                await handle_private_scene(
+                    room=room,
+                    character_id=character_id,
+                    user_message=user_message,
+                    llm_choice=llm_choice,
+                    emit=emit,
+                )
+                stat_payload = build_stat_update(
+                    character_id,
+                    rel_before,
+                    state.rel_engine.get_summary(character_id),
+                    emo_before,
+                    state.emo_engine.get_summary(character_id),
+                    growth_before,
+                    state.growth_engine.get_profile(character_id)
+                    if state.growth_engine
+                    else None,
+                    arousal_before,
+                    state.arousal_engine.get_summary(character_id)
+                    if state.arousal_engine
+                    else None,
+                )
+                await _emit_stat(room, stat_payload)
+                await emit({"type": "typing_end", "character_id": character_id})
+                continue
+
+            llm_messages = build_private_llm_messages(
+                character_id, persona, user_message, boundary_hint=boundary_hint,
             )
 
             reply_id = f"msg_{uuid.uuid4().hex[:12]}"
@@ -264,8 +290,24 @@ async def private_chat(websocket: WebSocket, character_id: str):
                     "sender_id": character_id,
                 },
                 save_to_db=_save_private,
+                structured_chat=True,
             )
 
+            stat_payload = build_stat_update(
+                character_id,
+                rel_before,
+                state.rel_engine.get_summary(character_id),
+                emo_before,
+                state.emo_engine.get_summary(character_id),
+                growth_before,
+                state.growth_engine.get_profile(character_id)
+                if state.growth_engine
+                else None,
+                arousal_before,
+                state.arousal_engine.get_summary(character_id)
+                if state.arousal_engine
+                else None,
+            )
             await _emit_stat(room, stat_payload)
 
             await emit({

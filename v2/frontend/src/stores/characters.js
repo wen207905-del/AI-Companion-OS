@@ -68,8 +68,12 @@ export function patchCharacterInList(charId, relationship, emotion, arousal) {
     if (c.id !== charId) return c
     return {
       ...c,
-      stage_name: relationship?.stage_name ?? c.stage_name,
+      stage_name: relationship?.affection_grade ?? relationship?.stage_name ?? c.stage_name,
       love: relationship?.love ?? c.love,
+      social_relation_label: relationship?.social_relation_label ?? c.social_relation_label,
+      affection_grade: relationship?.affection_grade ?? c.affection_grade,
+      affection_label: relationship?.affection_label ?? c.affection_label,
+      current_activity: relationship?.current_activity ?? c.current_activity,
       mood: emotion?.primary_mood ?? c.mood,
       arousal: arousal?.level ?? c.arousal,
       arousal_label: arousal?.label ?? c.arousal_label,

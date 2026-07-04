@@ -1,17 +1,15 @@
 """
 世界主循环
 
-V3 核心运行循环，使用 APScheduler 定时驱动：
-Phase 1: 时间推进 / 天气更新 / 角色活动
-Phase 2: 情绪压力 / 缺席追踪 / 自主决策 / 中央大脑仲裁 / 行为调度 / 反馈闭环
-
-生产模式：BackgroundScheduler 每 N 秒执行 tick_once()。
-调试模式：直接调用 tick_once() 单次执行。
+.. deprecated:: V4.1
+    WorldTick 已废弃，请使用 ``v3.core.life_kernel.LifeKernel`` 作为唯一调度入口。
+    本模块仅保留 CLI 调试与历史兼容。
 """
 
 import time
 import threading
 import json
+import warnings
 from datetime import datetime
 
 from .world_engine import WorldEngine
@@ -46,6 +44,11 @@ class WorldTick:
 
     def __init__(self, db: V3Database = None, tick_interval: int = None,
                  enable_phase2: bool = False, use_scheduler: bool = True):
+        warnings.warn(
+            "WorldTick is deprecated; use LifeKernel instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         """
         Args:
             db: V3 数据库实例，不传则自动创建

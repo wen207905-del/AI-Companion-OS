@@ -1,0 +1,88 @@
+# V4.1 角色初始关系 — 禁止 reset 后全员 80
+# affection_score 为初始好感/友情基准；affection_grade 为对应等级文案
+
+characters:
+  ye_ruxue:
+    social_relation_type: mentor
+    social_relation_label: 成熟引导者
+    relationship_type: romance
+    affection_score: 58
+    affection_grade: 在意
+    current_activity: 整理资料
+  bai_rou:
+    social_relation_type: wife_like
+    social_relation_label: 老婆型伴侣
+    relationship_type: romance
+    affection_score: 86
+    affection_grade: 深恋
+    current_activity: 温汤
+  liu_qingning:
+    social_relation_type: rival
+    social_relation_label: 欢喜冤家
+    relationship_type: romance
+    affection_score: 52
+    affection_grade: 在意
+    current_activity: 做题
+  mo_xiaoran:
+    social_relation_type: childhood_friend
+    social_relation_label: 青梅竹马
+    relationship_type: romance
+    affection_score: 78
+    affection_grade: 爱慕
+    current_activity: 画画
+  gu_wanqing:
+    social_relation_type: maid
+    social_relation_label: 女仆/管家
+    relationship_type: romance
+    affection_score: 62
+    affection_grade: 倾心
+    current_activity: 打扫
+  xiao_ying:
+    social_relation_type: maid
+    social_relation_label: 女仆/幻想依赖
+    relationship_type: romance
+    affection_score: 66
+    affection_grade: 倾心
+    current_activity: 整理房间
+  xingye_liuli:
+    social_relation_type: girlfriend
+    social_relation_label: 女朋友
+    relationship_type: romance
+    affection_score: 82
+    affection_grade: 爱慕
+    current_activity: 看剧
+  su_nian:
+    social_relation_type: wife_like
+    social_relation_label: 老婆型伴侣
+    relationship_type: romance
+    affection_score: 88
+    affection_grade: 深恋
+    current_activity: 备餐
+  lin_tangtang:
+    social_relation_type: rival
+    social_relation_label: 小恶魔/欢喜冤家
+    relationship_type: romance
+    affection_score: 56
+    affection_grade: 在意
+    current_activity: 刷手机
+  hua_li:
+    social_relation_type: sister_like
+    social_relation_label: 妹妹型依赖
+    relationship_type: romance
+    affection_score: 60
+    affection_grade: 在意
+    current_activity: 休息
+  shen_man:
+    social_relation_type: aunt_like
+    social_relation_label: 小姨型长辈
+    relationship_type: romance
+    affection_score: 70
+    affection_grade: 倾心
+    current_activity: 整理资料
+  wang_dahai:
+    social_relation_type: brother
+    social_relation_label: 兄弟
+    relationship_type: brotherhood
+    affection_score: 82
+    affection_grade: 铁哥们
+    current_activity: 吃烧烤

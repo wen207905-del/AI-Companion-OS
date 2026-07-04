@@ -13,6 +13,8 @@ export const EMOTION_CN = {
   sad: '伤心',
   angry: '生气',
   fearful: '不安',
+  miss_user: '想念',
+  jealous: '吃醋',
 }
 
 export const CONNECTION_CN = {

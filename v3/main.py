@@ -162,12 +162,12 @@ def create_app(enable_phase2: bool = True):
     # ── 启动事件 ──
     @app.on_event("startup")
     async def startup():
-        global _world_tick, _life_kernel, _scheduler, _db
+        global _life_kernel, _scheduler, _db
 
-        from .world.world_tick import WorldTick
         from v3.runtime.runtime_state import RuntimeState
         from v3.runtime.event_bus import EventBus
         from v3.runtime.scheduler import Scheduler
+        from v3.core.life_kernel import LifeKernel
 
         _db = V3Database()
         init_database(_db)
@@ -188,8 +188,6 @@ def create_app(enable_phase2: bool = True):
                 _scheduler = None
 
         try:
-            from v3.core.life_kernel import LifeKernel
-
             _life_kernel = LifeKernel(
                 event_bus=bus,
                 db=_db,
@@ -201,23 +199,9 @@ def create_app(enable_phase2: bool = True):
             start_scheduler(_life_kernel)
             print("[V3] LifeKernel 已启动（V4 统一生命内核，interval=5s）")
         except Exception as e:
-            print(f"[V3] LifeKernel 启动失败（降级到 WorldTick）: {e}")
             _life_kernel = None
-
-            _world_tick = WorldTick(
-                db=_db,
-                tick_interval=TICK_INTERVAL_SECONDS,
-                enable_phase2=enable_phase2,
-                use_scheduler=True,
-            )
-            _world_tick.db.connect()
-            _world_tick.db.create_tables()
-            _world_tick.start()
-
-            rt.life_loop_status = "running"
-            rt.uptime_start = time.time()
-            start_scheduler(_world_tick)
-            print("[V3] WorldTick 已启动（降级模式）")
+            rt.life_loop_status = "error"
+            print(f"[V3] LifeKernel 启动失败: {e}")
 
         print("[V3] V4 全栈启动完成")
 
@@ -274,16 +258,9 @@ def create_app(enable_phase2: bool = True):
         except Exception:
             health_status["llm"] = "unknown"
 
-        # 3. World Engine / LifeKernel 运行状态
+        # 3. LifeKernel 运行状态
         try:
-            if _world_tick:
-                status = _world_tick.get_status()
-                if status.get("running"):
-                    health_status["world"] = "ok"
-                else:
-                    health_status["world"] = "stopped"
-                    health_status["status"] = "degraded"
-            elif _life_kernel and getattr(_life_kernel, "state", None):
+            if _life_kernel and getattr(_life_kernel, "state", None):
                 from v3.core.life_kernel import KernelState
                 if _life_kernel.state == KernelState.RUNNING:
                     health_status["world"] = "ok"
@@ -319,31 +296,21 @@ def create_app(enable_phase2: bool = True):
     # ── 世界状态 ──
     @app.get("/api/state")
     async def api_state():
-        """返回当前世界状态快照。
-
-        Returns:
-            JSON 包含时间/天气/环境/角色状态
-        """
-        if not _world_tick:
+        """返回当前世界/LifeKernel 状态快照。"""
+        if not _life_kernel:
             return JSONResponse(
-                {"error": "WorldTick 未启动"}, status_code=503
+                {"error": "LifeKernel 未启动"}, status_code=503
             )
 
-        status = _world_tick.get_status()
-        ws = _world_tick.world_engine
-
+        recent = _db.get_recent_world_states(1) if _db else []
         return {
-            "time": {
-                "datetime": status["current_time"],
-                "period": ws.time_engine.get_time_period(),
-                "season": ws.time_engine.get_season(),
-                "day_of_week": ws.time_engine.get_day_of_week(),
+            "kernel": {
+                "state": _life_kernel.state.value,
+                "tick_count": _life_kernel.tick_count,
+                "uptime": round(time.time() - _life_kernel.uptime_start, 1)
+                if _life_kernel.uptime_start else 0,
             },
-            "weather": ws.weather_engine.current_weather,
-            "tick": {
-                "count": status["tick_count"],
-                "running": status["running"],
-            },
+            "world_states": recent,
         }
 
     # ── 角色列表 ──
@@ -360,21 +327,12 @@ def create_app(enable_phase2: bool = True):
     # ── 单次 tick（调试用） ──
     @app.post("/api/tick")
     async def api_tick():
-        """手动触发一次 tick，返回结果。"""
-        if not _world_tick:
+        """手动触发一次 LifeKernel tick。"""
+        if not _life_kernel:
             return JSONResponse(
-                {"error": "WorldTick 未启动"}, status_code=503
+                {"error": "LifeKernel 未启动"}, status_code=503
             )
-        result = _world_tick.tick_once()
-        return {
-            "tick_id": result.get("tick_id"),
-            "world_state": {
-                "time_period": result["world_state"].time_period,
-                "weather": result["world_state"].weather.type,
-                "scene_key": result["world_state"].get_scene_key(),
-            },
-            "phase2_results": result.get("phase2_results", []),
-        }
+        return _life_kernel.tick()
 
     # ── WebSocket ──
     @app.websocket("/ws")

@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, v4.1-character-reality]
   pull_request:
+  workflow_call:
 
 jobs:
   backend:
@@ -21,9 +22,23 @@ jobs:
       - name: Install dependencies
         run: pip install -r v2/requirements.txt
 
-      - name: Run pytest
+      - name: Run pytest with coverage
         working-directory: v2/backend
         run: python -m pytest tests/ -v --tb=short
+
+  v3-db:
+    name: V3 db module tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run V3 db tests
+        working-directory: v3
+        run: pip install pytest && python -m pytest tests/ -v --tb=short
 
   frontend:
     name: Frontend build

@@ -93,6 +93,38 @@ def insert_album(
     }
 
 
+def refresh_job_fields(
+    job_id: str,
+    *,
+    prompt: str,
+    model: str,
+    scene: str,
+    style: str,
+    meta_patch: dict | None = None,
+) -> None:
+    conn = get_db()
+    row = conn.execute(
+        "SELECT meta FROM image_albums WHERE job_id = ?", (job_id,),
+    ).fetchone()
+    meta = {}
+    if row and row["meta"]:
+        try:
+            meta = json.loads(row["meta"])
+        except json.JSONDecodeError:
+            meta = {}
+    if meta_patch:
+        meta.update(meta_patch)
+    conn.execute(
+        """
+        UPDATE image_albums
+        SET prompt = ?, model = ?, scene = ?, style = ?, meta = ?
+        WHERE job_id = ?
+        """,
+        (prompt, model, scene, style, json.dumps(meta, ensure_ascii=False), job_id),
+    )
+    conn.commit()
+
+
 def update_job_status(
     job_id: str,
     status: str,

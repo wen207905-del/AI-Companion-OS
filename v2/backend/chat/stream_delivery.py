@@ -26,6 +26,7 @@ async def deliver_character_reply(
     memory_scope_id: str | None = None,
     present_members: list[str] | None = None,
     group_name: str | None = None,
+    structured_chat: bool = False,
 ) -> str:
     """
     Generate a character reply and push over WebSocket to all clients in room.
@@ -67,6 +68,7 @@ async def deliver_character_reply(
             chat_mode=chat_mode,
             user_message=user_message,
             group_name=group_name or "",
+            structured_chat=structured_chat,
         )
     else:
         reply_content, action, inner_thought = await generate_reply(
@@ -77,6 +79,7 @@ async def deliver_character_reply(
             chat_mode=chat_mode,
             user_message=user_message,
             group_name=group_name or "",
+            structured_chat=structured_chat,
         )
 
     photo_directive, reply_content = strip_reply_photo_tag(reply_content or "")
@@ -138,6 +141,15 @@ async def deliver_character_reply(
 
     char_id = ws_meta.get("character_id") or ws_meta.get("sender_id")
     if memory_scope == "private" and char_id:
+        from services.emotion_tick import apply_character_reply_emotion, push_emotion_update
+        emo_delta = apply_character_reply_emotion(char_id)
+        if emo_delta:
+            await push_emotion_update(
+                char_id,
+                emo_delta,
+                state.emo_engine.get_summary(char_id) if state.emo_engine else None,
+                room=room,
+            )
         await maybe_deliver_chat_photo(
             room,
             character_id=char_id,

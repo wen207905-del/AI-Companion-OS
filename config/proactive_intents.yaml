@@ -1,0 +1,112 @@
+# V4.1 主动分享 intent 配置 — 活动驱动，禁止批量「想你了」
+
+hourly_limit: 3
+score_threshold: 55
+similarity_threshold: 0.7
+min_hours_since_user: 2.0
+
+forbidden_phrases:
+  - 想你了
+  - 是不是忘了
+  - 是不是忘了我
+  - 想我吗
+  - 好久没联系
+  - 怎么不理我
+  - 还在吗
+
+grade_weights:
+  灵魂牵系: 95
+  羁绊: 90
+  深恋: 85
+  爱慕: 75
+  倾心: 60
+  在意: 45
+  亲近: 35
+  熟识: 25
+  点头之交: 15
+  陌生: 5
+  过命兄弟: 90
+  铁哥们: 70
+  好兄弟: 55
+  朋友: 40
+  熟人: 25
+  不熟: 10
+
+character_initiative:
+  bai_rou: 72
+  liu_qingning: 68
+  wang_dahai: 82
+  ye_ruxue: 45
+  mo_xiaoran: 58
+  default: 50
+
+activities:
+  温汤:
+    share_desire: 78
+    preferred_intents: [daily_share, care_check]
+  做题:
+    share_desire: 62
+    preferred_intents: [mood_share, soft_complaint]
+  吃烧烤:
+    share_desire: 70
+    preferred_intents: [daily_share, life_update]
+  整理资料:
+    share_desire: 55
+    preferred_intents: [life_update, care_check]
+  画画:
+    share_desire: 60
+    preferred_intents: [photo_share, mood_share]
+  看剧:
+    share_desire: 58
+    preferred_intents: [daily_share, mood_share]
+  备餐:
+    share_desire: 72
+    preferred_intents: [daily_share, care_check]
+  打扫:
+    share_desire: 50
+    preferred_intents: [life_update]
+  整理房间:
+    share_desire: 52
+    preferred_intents: [life_update, care_check]
+  刷手机:
+    share_desire: 48
+    preferred_intents: [daily_share, mood_share]
+  休息:
+    share_desire: 40
+    preferred_intents: [mood_share]
+  日常:
+    share_desire: 45
+    preferred_intents: [daily_share, mood_share]
+
+intents:
+  daily_share:
+    label: 日常分享
+    prompt: 分享你正在做的具体小事，自然口语，1-2句。
+  mood_share:
+    label: 心情分享
+    prompt: 说说此刻心情或状态，不要直接说「想你了」。
+  care_check:
+    label: 关心问候
+    prompt: 基于当前活动顺带关心对方，语气符合关系，不要撒娇套话。
+  life_update:
+    label: 生活更新
+    prompt: 汇报生活进展或刚完成的事，具体、有画面感。
+  soft_complaint:
+    label: 轻微抱怨
+    prompt: 嘴硬式抱怨或吐槽，适合傲娇/冤家，不要恋爱撒娇。
+  ask_advice:
+    label: 征求意见
+    prompt: 就当前活动问对方一个小问题，自然随意。
+  memory_recall:
+    label: 想起旧事
+    prompt: 联想到一件具体往事，不要空泛感叹。
+  photo_share:
+    label: 分享照片
+    prompt: 描述想分享的画面或场景（文字即可），不要模板问候。
+
+character_styles:
+  bai_rou: 温柔体贴、像妻子一样照顾，句子软但有具体细节，不说「想你了」。
+  liu_qingning: 傲娇嘴硬，先抱怨再拐弯关心，禁止撒娇恋爱腔。
+  wang_dahai: 损友兄弟口吻，可互怼、可约吃喝，禁止恋爱语气、禁止「想你」。
+  ye_ruxue: 克制冷静，像长辈/引导者，关心但不黏腻。
+  default: 符合人设口语，1-2句，禁止模板问候。

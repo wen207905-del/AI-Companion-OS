@@ -122,8 +122,25 @@ def init_db(conn):
             tired REAL DEFAULT 20, lonely REAL DEFAULT 15, excited REAL DEFAULT 10,
             embarrassed REAL DEFAULT 0, shy REAL DEFAULT 20, suspicious REAL DEFAULT 5,
             sad REAL DEFAULT 5, angry REAL DEFAULT 5, fearful REAL DEFAULT 5,
+            miss_user REAL DEFAULT 20, jealous REAL DEFAULT 0,
+            activity TEXT DEFAULT '', delta_json TEXT DEFAULT '',
             timestamp REAL NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS activity_emotion_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            character_id TEXT NOT NULL,
+            activity TEXT DEFAULT '',
+            happy REAL DEFAULT 50,
+            lonely REAL DEFAULT 15,
+            miss_user REAL DEFAULT 20,
+            primary_mood TEXT DEFAULT '平静',
+            delta_json TEXT DEFAULT '{}',
+            timestamp REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_activity_emotion_char
+            ON activity_emotion_snapshots(character_id, timestamp DESC);
 
         CREATE TABLE IF NOT EXISTS group_chats (
             id TEXT PRIMARY KEY, name TEXT NOT NULL,
@@ -203,12 +220,83 @@ def init_db(conn):
             model TEXT NOT NULL,
             scene TEXT DEFAULT '',
             style TEXT DEFAULT '',
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'queued',
             meta TEXT DEFAULT '{}',
-            created_at REAL NOT NULL
+            created_at REAL NOT NULL,
+            updated_at REAL,
+            progress_text TEXT DEFAULT '',
+            trigger_type TEXT DEFAULT '',
+            attempt_count INTEGER DEFAULT 0,
+            error_message TEXT DEFAULT ''
         );
 
         CREATE INDEX IF NOT EXISTS idx_image_albums_char
             ON image_albums(character_id, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS character_user_relation (
+            character_id TEXT PRIMARY KEY,
+            social_relation_type TEXT NOT NULL,
+            social_relation_label TEXT NOT NULL,
+            affection_score REAL NOT NULL,
+            affection_grade TEXT NOT NULL,
+            relationship_type TEXT NOT NULL DEFAULT 'romance',
+            current_activity TEXT DEFAULT '日常',
+            current_addressing_style TEXT DEFAULT '',
+            updated_at REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_char_user_relation_grade
+            ON character_user_relation(affection_grade);
+
+        CREATE TABLE IF NOT EXISTS user_runtime_settings (
+            user_id TEXT PRIMARY KEY DEFAULT 'default',
+            current_mode TEXT NOT NULL DEFAULT 'chat',
+            active_character_id TEXT,
+            scene_style TEXT DEFAULT '',
+            updated_at REAL NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS character_character_relation (
+            from_character_id TEXT NOT NULL,
+            to_character_id TEXT NOT NULL,
+            relation_label TEXT DEFAULT '熟识',
+            familiarity REAL DEFAULT 50,
+            trust REAL DEFAULT 50,
+            affinity REAL DEFAULT 50,
+            rivalry REAL DEFAULT 0,
+            jealousy REAL DEFAULT 0,
+            respect REAL DEFAULT 50,
+            protectiveness REAL DEFAULT 30,
+            last_dm_at REAL DEFAULT 0,
+            updated_at REAL NOT NULL,
+            PRIMARY KEY (from_character_id, to_character_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS character_dm_conversation (
+            id TEXT PRIMARY KEY,
+            character_a TEXT NOT NULL,
+            character_b TEXT NOT NULL,
+            initiator_id TEXT NOT NULL,
+            trigger_type TEXT NOT NULL,
+            trigger_reason TEXT DEFAULT '',
+            status TEXT DEFAULT 'active',
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL,
+            last_message_at REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_dm_conv_updated
+            ON character_dm_conversation(updated_at DESC);
+
+        CREATE TABLE IF NOT EXISTS character_dm_messages (
+            id TEXT PRIMARY KEY,
+            conversation_id TEXT NOT NULL,
+            speaker_id TEXT NOT NULL,
+            content TEXT NOT NULL,
+            timestamp REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_dm_msg_conv
+            ON character_dm_messages(conversation_id, timestamp ASC);
     """)
     conn.commit()

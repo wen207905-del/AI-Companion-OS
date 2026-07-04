@@ -3,6 +3,7 @@
   import { loadCharacterDetail } from '../stores/characters.js'
   import { lastPrivateMsgTimestamp, lastStatUpdate } from '../stores/chat.js'
   import CharacterAvatar from '../components/CharacterAvatar.svelte'
+  import RightStatusPanel from '../components/RightStatusPanel.svelte'
   import ProgressBar from '../components/ProgressBar.svelte'
   import { EMOTION_CN } from '../lib/labels.js'
 
@@ -57,17 +58,17 @@
     && $lastStatUpdate.ts !== lastAppliedStatTs) {
     lastAppliedStatTs = $lastStatUpdate.ts
     const payload = $lastStatUpdate
-    fieldDeltas = { ...(payload.deltas?.relationship || {}) }
+    fieldDeltas = { ...(payload.deltas?.relationship || {}), ...(payload.deltas?.emotion || {}) }
     stageDelta = payload.deltas?.stage_name || null
     xpDelta = payload.deltas?.xp || null
-    moodDelta = payload.deltas?.mood || null
+    moodDelta = payload.deltas?.mood || payload.emotion?.primary_mood || null
     arousalDelta = payload.deltas?.arousal ?? null
     arousalLabelDelta = payload.deltas?.arousal_label || null
 
-    if (payload.relationship) {
+    if (payload.relationship || payload.emotion) {
       detail = {
         ...(detail || { persona: {} }),
-        relationship: payload.relationship,
+        relationship: payload.relationship || detail?.relationship,
         emotion: payload.emotion || detail?.emotion,
         growth: payload.growth || detail?.growth,
         arousal: payload.arousal || detail?.arousal,
@@ -123,6 +124,8 @@
       </div>
     </div>
 
+    <RightStatusPanel relationship={detail.relationship} emotion={detail.emotion} />
+
     {#if detail.relationship}
       <div class="section">
         <h3 class="section-title">关系阶段</h3>
@@ -130,12 +133,18 @@
           <span class="stage-number">{detail.relationship.stage}</span>
           <div class="stage-meta">
             <span class="stage-name">
-              {detail.relationship.stage_name}
+              {detail.relationship.affection_grade || detail.relationship.stage_name}
               {#if stageDelta}
                 <span class="stage-delta">→ {stageDelta}</span>
               {/if}
             </span>
-            <span class="stage-love">好感 {detail.relationship.love}</span>
+            <span class="stage-love">
+              {#if detail.relationship.affection_label}
+                {detail.relationship.affection_label}
+              {:else}
+                好感 {detail.relationship.love}
+              {/if}
+            </span>
           </div>
         </div>
       </div>

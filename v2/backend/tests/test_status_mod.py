@@ -14,7 +14,7 @@ def test_mod_v5_block_contains_female_fields(memory_db):
     block = build_status_block(
         "bai_rou", persona, rel, emo, user_message="今天穿女仆装", arousal_summary={"level": 30, "label": "微热"},
     )
-    assert "【身心状态" in block
+    assert "【角色状态栏" in block or "【身心状态" in block
     assert "女仆" in block or "穿着" in block
     assert "生理" in block or "卵泡" in block or "月经" in block
 

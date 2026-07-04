@@ -23,6 +23,7 @@
   $: contents = message.content || ''
   $: contentType = message.contentType || message.content_type || 'text'
   $: isImage = contentType === 'image'
+  $: isImagePending = isImage && message.imageJobStatus === 'generating'
   $: actionText = getActionText(message.action)
   $: innerThought = message.innerThought || ''
   $: thoughtLabel = characterName ? `${characterName}·内心` : '角色·内心'
@@ -46,6 +47,7 @@
   function getActionText(action) {
     if (!action) return ''
     if (typeof action === 'string') return action
+    if (typeof action === 'object' && action.text) return action.text
     if (typeof action === 'object' && action.type) {
       const ACTION_CN = {
         smile: '微笑', pout: '噘嘴', sleep: '困了', wave: '挥手',
@@ -171,7 +173,12 @@
             <span class="action-text">*{actionText}*</span>
           {/if}
           <div class="bubble-content">
-            {#if isImage}
+            {#if isImagePending}
+              <div class="image-pending" aria-label="照片生成中">
+                <span class="pending-icon">📷</span>
+                <span class="pending-text">{message.imageJobLabel || '照片生成中…'}</span>
+              </div>
+            {:else if isImage}
               <img class="chat-photo" src={contents} alt="角色照片" loading="lazy" />
             {:else}
               <ReplyContent content={contents} streaming={message.isStreaming} />
@@ -337,6 +344,29 @@
     border-radius: 12px;
     object-fit: cover;
     border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .image-pending {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+    min-height: 88px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(124, 92, 252, 0.12);
+    border: 1px dashed rgba(124, 92, 252, 0.35);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .pending-icon {
+    font-size: 1.4rem;
+    opacity: 0.85;
+  }
+
+  .pending-text {
+    font-weight: 500;
   }
 
   .stream-cursor {
