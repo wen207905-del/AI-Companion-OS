@@ -16,6 +16,7 @@ from engine.emotion_engine import EmotionEngine  # noqa: E402
 from engine.growth_engine import GrowthEngine  # noqa: E402
 from engine.relationship_engine import RelationshipEngine  # noqa: E402
 from personality.persona_loader import PersonaLoader  # noqa: E402
+from services.social_relation_service import seed_all_characters  # noqa: E402
 
 TABLES = (
     "private_messages",
@@ -31,6 +32,7 @@ TABLES = (
     "arousal_snapshot",
     "character_growth",
     "chat_llm_prefs",
+    "character_user_relation",
 )
 
 
@@ -52,14 +54,19 @@ def _seed_initial_state(conn) -> None:
         rel.init_character(pid, persona)
         emo.init_character(pid)
         arousal.init_character(pid, persona)
+
+    seeded = seed_all_characters(rel, conn, list(loader.personas.keys()), force=True)
+    print(f"[reset] V4.1 关系初始化：{seeded} 个角色（来自 relationship_init.yaml）")
+
+    for pid in loader.personas.keys():
         rel.save_snapshot(pid, "init")
         emo.save_snapshot(pid, "init")
         arousal.save_snapshot(pid, "init")
         growth._ensure_row(pid)
 
-    rel.ensure_minimum_love(80.0, event_id="reset_floor")
     conn.commit()
-    print(f"[reset] 已初始化 {len(loader.personas)} 个角色，好感度基准 80")
+    loves = [rel.states[p].love for p in loader.personas.keys() if p in rel.states]
+    print(f"[reset] 已初始化 {len(loader.personas)} 个角色，好感范围 {min(loves):.0f}–{max(loves):.0f}")
 
 
 def main() -> None:

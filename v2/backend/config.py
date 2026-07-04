@@ -210,5 +210,28 @@ def init_db(conn):
 
         CREATE INDEX IF NOT EXISTS idx_image_albums_char
             ON image_albums(character_id, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS character_user_relation (
+            character_id TEXT PRIMARY KEY,
+            social_relation_type TEXT NOT NULL,
+            social_relation_label TEXT NOT NULL,
+            affection_score REAL NOT NULL,
+            affection_grade TEXT NOT NULL,
+            relationship_type TEXT NOT NULL DEFAULT 'romance',
+            current_activity TEXT DEFAULT '日常',
+            current_addressing_style TEXT DEFAULT '',
+            updated_at REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_char_user_relation_grade
+            ON character_user_relation(affection_grade);
+
+        CREATE TABLE IF NOT EXISTS user_runtime_settings (
+            user_id TEXT PRIMARY KEY DEFAULT 'default',
+            current_mode TEXT NOT NULL DEFAULT 'chat',
+            active_character_id TEXT,
+            scene_style TEXT DEFAULT '',
+            updated_at REAL NOT NULL
+        );
     """)
     conn.commit()

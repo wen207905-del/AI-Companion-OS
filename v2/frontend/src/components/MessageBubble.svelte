@@ -46,6 +46,7 @@
   function getActionText(action) {
     if (!action) return ''
     if (typeof action === 'string') return action
+    if (typeof action === 'object' && action.text) return action.text
     if (typeof action === 'object' && action.type) {
       const ACTION_CN = {
         smile: '微笑', pout: '噘嘴', sleep: '困了', wave: '挥手',

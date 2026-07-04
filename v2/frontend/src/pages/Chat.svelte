@@ -8,11 +8,14 @@
     typingCharacters,
     isStreamingReply,
     activeGroup,
+    chatMode,
+    setChatMode,
   } from '../stores/chat.js'
   import { currentLlm, providers } from '../stores/llm.js'
   import { characters, groups, loadCharacterDetail, userProfile } from '../stores/characters.js'
   import { lastPrivateMsgTimestamp, lastStatUpdate } from '../stores/chat.js'
   import MessageBubble from '../components/MessageBubble.svelte'
+  import SceneBubble from '../components/SceneBubble.svelte'
   import ChatInput from '../components/ChatInput.svelte'
   import LlmSelector from '../components/LlmSelector.svelte'
   import CharacterAvatar from '../components/CharacterAvatar.svelte'
@@ -268,6 +271,20 @@
         </div>
       </div>
       <div class="header-right">
+        {#if view === 'private'}
+          <div class="mode-toggle" role="group" aria-label="回复模式">
+            <button
+              type="button"
+              class:active={$chatMode === 'chat'}
+              on:click={() => setChatMode('chat')}
+            >聊天模式</button>
+            <button
+              type="button"
+              class:active={$chatMode === 'scene'}
+              on:click={() => setChatMode('scene')}
+            >叙述模式</button>
+          </div>
+        {/if}
         {#if view === 'group' && groupId}
           <button type="button" class="members-btn" on:click={() => showGroupManage = true} aria-label="管理群成员">
             <span class="avatar-stack">
@@ -312,6 +329,8 @@
     {#each $messages as msg (msg.id)}
       {#if msg.type === 'system'}
         <div class="system-msg">{msg.content}</div>
+      {:else if msg.type === 'scene' || msg.contentType === 'scene'}
+        <SceneBubble message={msg} />
       {:else}
         <MessageBubble
           message={msg}
@@ -524,6 +543,39 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+  }
+
+  .mode-toggle {
+    display: inline-flex;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .mode-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .mode-toggle button.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  @media (max-width: 480px) {
+    .mode-toggle button {
+      font-size: 0.62rem;
+      padding: 4px 6px;
+    }
   }
 
   .members-btn {

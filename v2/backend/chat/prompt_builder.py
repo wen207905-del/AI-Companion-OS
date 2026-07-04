@@ -4,7 +4,7 @@ import random
 from typing import Any
 
 from chat.style_reference_loader import style_reference_block
-from config import CONTENT_MODE, STYLE_REFERENCE_ENABLED, USER_NAME, USER_NICKNAME
+from config import CONTENT_MODE, CONFIG_DIR, STYLE_REFERENCE_ENABLED, USER_NAME, USER_NICKNAME
 from chat.group_context import group_user_identity_block, group_user_scene_directive, visible_user_message_for_character
 from engine.world_clock import context_line as world_time_line
 
@@ -657,4 +657,91 @@ class PromptBuilder:
             "role": "user",
             "content": f"（{target_name} 说：{target_content}）",
         })
+        return messages
+
+    def _chat_mode_template_block(
+        self,
+        rel_summary: dict[str, Any],
+        emo_summary: dict[str, Any],
+        user_message: str,
+        recent_memories: str,
+    ) -> str:
+        path = CONFIG_DIR / "prompts" / "chat_mode.txt"
+        template = path.read_text(encoding="utf-8") if path.exists() else ""
+        name = self._persona.get("name", self._persona.get("id", "角色"))
+        is_brother = rel_summary.get("relationship_type") == "brotherhood" or rel_summary.get("is_friendship")
+        return template.format(
+            character_name=name,
+            social_relation_label=rel_summary.get("social_relation_label") or rel_summary.get("stage_name", ""),
+            affection_score=int(round(float(rel_summary.get("affection_score", rel_summary.get("love", 0))))),
+            affection_grade=rel_summary.get("affection_grade") or rel_summary.get("stage_name", ""),
+            primary_mood=emo_summary.get("primary_mood", "平静"),
+            current_activity=rel_summary.get("current_activity", "日常"),
+            recent_memories=recent_memories or "（暂无）",
+            addressing_style=rel_summary.get("current_addressing_style") or USER_NICKNAME,
+            user_message=user_message or "（等待用户开口）",
+        ) + (
+            "\n\n【兄弟关系】禁止恋爱语气、撒娇、想你、老婆等表达。"
+            if is_brother
+            else ""
+        )
+
+    def _chat_mode_reply_rules(self) -> list[str]:
+        return [
+            "",
+            "【聊天模式输出规则】",
+            "1. 必须包含一行【动作】…，再写台词",
+            "2. 台词自然口语，像微信私聊，不写超长 CG 小说",
+            "3. 每次动作与台词须承接用户上一句",
+            "4. 禁止所有人统一句式「是不是忘了我」",
+            "5. 发照片时在末尾单独一行 [PHOTO:描述]（系统会处理）",
+        ]
+
+    def build_chat_mode_system(
+        self,
+        rel_summary: dict[str, Any],
+        emo_summary: dict[str, Any],
+        chat_style: dict[str, Any],
+        user_message: str = "",
+        recent_memories: str = "",
+    ) -> str:
+        base = self.build_private_system(rel_summary, emo_summary, chat_style, is_first_contact=False)
+        chat_block = self._chat_mode_template_block(
+            rel_summary, emo_summary, user_message, recent_memories,
+        )
+        rules = self._chat_mode_reply_rules()
+        return base + "\n\n" + chat_block + "\n" + "\n".join(rules)
+
+    def build_chat_mode_messages(
+        self,
+        rel_summary: dict[str, Any],
+        emo_summary: dict[str, Any],
+        chat_style: dict[str, Any],
+        history: list[dict[str, str]],
+        memory_text: str = "",
+        boundary_hint: str = "",
+        status_text: str = "",
+        user_message: str = "",
+        recent_memories: str = "",
+    ) -> list[dict[str, str]]:
+        um = (user_message or "").strip()
+        system = self.build_chat_mode_system(
+            rel_summary, emo_summary, chat_style,
+            user_message=um, recent_memories=recent_memories or memory_text,
+        )
+        if STYLE_REFERENCE_ENABLED and CONTENT_MODE == "unrestricted":
+            ref_block = style_reference_block("private")
+            if ref_block:
+                system += ref_block
+        if status_text:
+            system += "\n\n" + status_text
+        if boundary_hint:
+            system += "\n\n" + boundary_hint
+
+        messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        hist = [h for h in (history or []) if (h.get("content") or "").strip()]
+        if hist:
+            messages.extend(hist[-20:])
+        if um:
+            messages.append({"role": "user", "content": um})
         return messages

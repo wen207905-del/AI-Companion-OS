@@ -18,6 +18,7 @@ export const lastPrivateMsgTimestamp = writable(0)
 export const lastStatUpdate = writable(null)
 export const typingCharacters = writable([])
 export const isStreamingReply = writable(false)
+export const chatMode = writable('chat')
 
 let ws = null
 let reconnectTimer = null
@@ -51,23 +52,56 @@ function teardownSocket(socket) {
   }
 }
 
+function parseStoredAction(raw) {
+  if (!raw) return null
+  if (typeof raw === 'object') return raw
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return raw
+  }
+}
+
+function mapPrivateHistoryMessage(m, characterId) {
+  const contentType = m.content_type || 'text'
+  if (contentType === 'scene') {
+    const sceneData = parseStoredAction(m.action)
+    return {
+      id: m.id,
+      type: 'scene',
+      senderType: m.sender_type,
+      senderId: m.sender_type === 'character' ? characterId : 'user',
+      content: m.content,
+      contentType: 'scene',
+      narration: sceneData?.narration || '',
+      sceneEvents: sceneData?.events || [],
+      participants: sceneData?.participants || [],
+      parseFallback: !!sceneData?.parse_fallback,
+      timestamp: normalizeTimestamp(m.timestamp),
+      edited: !!m.edited,
+    }
+  }
+  return {
+    id: m.id,
+    type: 'chat',
+    senderType: m.sender_type,
+    senderId: m.sender_type,
+    content: m.content,
+    contentType,
+    action: parseStoredAction(m.action),
+    innerThought: m.inner_thought || '',
+    timestamp: normalizeTimestamp(m.timestamp),
+    edited: !!m.edited,
+  }
+}
+
 async function loadPrivateHistory(characterId, { replace = true, scopeSeq, view = 'private' } = {}) {
   try {
     const res = await fetch(apiUrl(`/api/chat/${characterId}/history?limit=50`))
     if (!res.ok) return
     if (scopeSeq != null && !canApplyHistory(scopeSeq, view, characterId)) return
     const data = await res.json()
-    const hist = (data.messages || []).map(m => ({
-      id: m.id,
-      type: 'chat',
-      senderType: m.sender_type,
-      senderId: m.sender_type,
-      content: m.content,
-      contentType: m.content_type || 'text',
-      innerThought: m.inner_thought || '',
-      timestamp: normalizeTimestamp(m.timestamp),
-      edited: !!m.edited,
-    }))
+    const hist = (data.messages || []).map(m => mapPrivateHistoryMessage(m, characterId))
     if (replace || hist.length) {
       setSortedMessages(hist)
     }
@@ -210,9 +244,42 @@ function handleMessage(data, view) {
     return
   }
 
+  if (data.type === 'mode_updated') {
+    if (data.mode === 'chat' || data.mode === 'scene') {
+      chatMode.set(data.mode)
+    }
+    return
+  }
+
+  if (data.type === 'scene_event') {
+    isWaitingReply.set(false)
+    isStreamingReply.set(false)
+    typingCharacters.set([])
+    updateSortedMessages(msgs => [...msgs, withNormalizedTimestamp({
+      id: data.id,
+      type: 'scene',
+      senderType: 'character',
+      senderId: data.character_id || '',
+      content: data.content || '',
+      contentType: 'scene',
+      narration: data.narration || '',
+      sceneEvents: data.events || [],
+      participants: data.participants || [],
+      parseFallback: !!data.parse_fallback,
+      timestamp: data.timestamp,
+    })])
+    if (view === 'private') {
+      lastPrivateMsgTimestamp.set(Date.now())
+    }
+    return
+  }
+
   if (data.type === 'init') {
     if (data.world_time) {
       syncWorldClock(data.world_time)
+    }
+    if (data.mode === 'chat' || data.mode === 'scene') {
+      chatMode.set(data.mode)
     }
     if (data.character?.id) {
       applyLlmFromInit(data, 'private', data.character.id)
@@ -623,11 +690,31 @@ export function sendMessage(content) {
 
   isWaitingReply.set(true)
 
-  ws.send(JSON.stringify({
+  const payload = {
     message: content,
     llm: getCurrentLlmPayload(),
     client_id: clientId,
-  }))
+  }
+  const mode = get(chatMode)
+  if (mode === 'scene') {
+    payload.mode = 'scene'
+  }
+
+  ws.send(JSON.stringify(payload))
+}
+
+export function setChatMode(mode) {
+  if (mode !== 'chat' && mode !== 'scene') return
+  chatMode.set(mode)
+  if (ws && ws.readyState === WebSocket.OPEN && currentView === 'private') {
+    ws.send(JSON.stringify({ type: 'set_mode', mode }))
+    return
+  }
+  fetch(apiUrl('/api/v4/mode'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  }).catch(err => console.error('保存模式失败:', err))
 }
 
 function messageApiPath(messageId) {

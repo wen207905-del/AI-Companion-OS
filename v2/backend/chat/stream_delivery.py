@@ -26,6 +26,7 @@ async def deliver_character_reply(
     memory_scope_id: str | None = None,
     present_members: list[str] | None = None,
     group_name: str | None = None,
+    structured_chat: bool = False,
 ) -> str:
     """
     Generate a character reply and push over WebSocket to all clients in room.
@@ -67,6 +68,7 @@ async def deliver_character_reply(
             chat_mode=chat_mode,
             user_message=user_message,
             group_name=group_name or "",
+            structured_chat=structured_chat,
         )
     else:
         reply_content, action, inner_thought = await generate_reply(
@@ -77,6 +79,7 @@ async def deliver_character_reply(
             chat_mode=chat_mode,
             user_message=user_message,
             group_name=group_name or "",
+            structured_chat=structured_chat,
         )
 
     photo_directive, reply_content = strip_reply_photo_tag(reply_content or "")

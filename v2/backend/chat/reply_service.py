@@ -354,6 +354,7 @@ async def generate_reply(
     chat_mode: str = "private",
     user_message: str = "",
     group_name: str = "",
+    structured_chat: bool = False,
 ) -> tuple[str, dict[str, Any], str]:
     """Call LLM and return (content, action, inner_thought). Streams when on_delta is set."""
     choice = choice_from_dict(llm_choice)
@@ -392,7 +393,7 @@ async def generate_reply(
             )
             content = content.strip()
 
-        if CONTENT_MODE == "unrestricted" and _reply_too_short(content):
+        if CONTENT_MODE == "unrestricted" and _reply_too_short(content) and not structured_chat:
             logger.info("Reply too short (%d chars), expanding once", len(content))
             expanded = await _expand_short_reply(messages, content, llm_choice)
             if expanded != content and use_stream and on_delta is not None:
@@ -405,6 +406,11 @@ async def generate_reply(
             content = expanded
 
         content = _strip_leaked_inner_blocks(content)
+
+        if structured_chat:
+            content, action = parse_chat_structured(content, name)
+        else:
+            action = infer_action(content)
 
         if not content:
             return (
@@ -441,7 +447,7 @@ async def generate_reply(
                 logger.warning("inner thought generation failed: %s", inner_err)
                 inner_thought = ""
 
-        return content, infer_action(content), inner_thought
+        return content, action, inner_thought
 
     except Exception as e:
         detail = str(e).strip() or type(e).__name__
@@ -466,3 +472,38 @@ def infer_action(text: str) -> dict[str, str]:
     if any(kw in text for kw in ["嗯", "呃", "...", "欲言", "哼"]):
         return {"type": "hesitate"}
     return {"type": "talk"}
+
+
+_ACTION_LINE_RE = re.compile(r"^【动作】(.+?)(?:\n|$)", re.MULTILINE)
+_NAME_DIALOGUE_RE = re.compile(r"^(.+?)[：:]\s*[「\"](.+)[」\"]\s*$", re.DOTALL)
+
+
+def parse_chat_structured(text: str, character_name: str) -> tuple[str, dict[str, Any]]:
+    """
+    Parse V4.1 chat mode output into display content and action object.
+    Returns (content_for_bubble, action_dict).
+    """
+    raw = (text or "").strip()
+    if not raw:
+        return raw, infer_action(raw)
+
+    action_text = ""
+    body = raw
+    m = _ACTION_LINE_RE.search(raw)
+    if m:
+        action_text = m.group(1).strip()
+        body = raw[m.end():].strip()
+
+    dialogue = body
+    dm = _NAME_DIALOGUE_RE.match(body)
+    if dm:
+        dialogue = dm.group(2).strip()
+    elif body.startswith("「") and "」" in body:
+        dialogue = body.strip("「」").strip()
+
+    content = dialogue or body or raw
+    if action_text:
+        action = {"type": "action", "text": action_text}
+    else:
+        action = infer_action(content)
+    return content, action

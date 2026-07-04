@@ -17,6 +17,7 @@ from event.event_analyzer import event_analyzer
 from event.event_bus import event_bus
 from memory.memory_manager import MemoryManager
 from personality.persona_loader import PersonaLoader
+from services.social_relation_service import enrich_relationship_summary, seed_all_characters
 
 
 def init_all() -> None:
@@ -47,8 +48,17 @@ def init_all() -> None:
         if not arousal_loaded:
             state.arousal_engine.save_snapshot(pid, "init")
 
-    if state.rel_engine:
-        state.rel_engine.ensure_minimum_love(80.0)
+    if state.rel_engine and state.db:
+        seeded = seed_all_characters(
+            state.rel_engine,
+            state.db,
+            list(state.persona_loader.personas.keys()),
+            force=False,
+        )
+        if seeded:
+            for pid in state.persona_loader.personas.keys():
+                if pid in state.rel_engine.states:
+                    state.rel_engine.save_snapshot(pid, "v4_1_init")
 
     _sync_group_members_from_db()
     _register_event_handler()
