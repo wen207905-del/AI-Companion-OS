@@ -11,6 +11,7 @@ from config import CONFIG_DIR
 
 _MANIFEST = CONFIG_DIR / "status_mod" / "manifest.yaml"
 _OUTFITS = CONFIG_DIR / "status_mod" / "outfits.yaml"
+_ALIASES = CONFIG_DIR / "status_mod" / "scene_aliases.yaml"
 
 
 @lru_cache(maxsize=1)
@@ -27,6 +28,15 @@ def load_outfits_config() -> dict:
     if not _OUTFITS.is_file():
         return {}
     with open(_OUTFITS, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return data if isinstance(data, dict) else {}
+
+
+@lru_cache(maxsize=1)
+def load_scene_aliases() -> dict:
+    if not _ALIASES.is_file():
+        return {}
+    with open(_ALIASES, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     return data if isinstance(data, dict) else {}
 

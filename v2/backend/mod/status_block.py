@@ -291,3 +291,77 @@ def _build_v5(
         lines.append(f"（当前在群聊「{group_name}」，尺度比私聊克制。）")
 
     return "\n".join(lines) + _word_limit_suffix(cfg)
+
+
+def build_scene_participant_block(
+    character_id: str,
+    persona: dict,
+    rel_summary: dict[str, Any],
+    emo_summary: dict[str, Any],
+    *,
+    user_message: str = "",
+    scene_hint: str = "",
+    arousal_summary: dict | None = None,
+) -> str:
+    """Compact roster line for scene mode — status mod when enabled."""
+    if mod_variant() not in ("v4", "v5"):
+        return _scene_participant_fallback(character_id, persona, rel_summary, emo_summary)
+
+    cfg = load_manifest()
+    name = persona.get("name", character_id)
+    social = rel_summary.get("social_relation_label") or rel_summary.get("stage_name", "")
+    grade = rel_summary.get("affection_grade", "")
+    score = rel_summary.get("affection_score", rel_summary.get("love", 0))
+    mood = emo_summary.get("primary_mood", "平静")
+    activity = rel_summary.get("current_activity", "日常")
+
+    lines = [
+        f"▸ {character_id}（{name}）",
+        f"  关系：{social} · 好感{score}·{grade} | 心情：{mood} | 活动：{activity}",
+    ]
+
+    priv = persona.get("personality", {}).get("private") or {}
+    if summary := priv.get("summary"):
+        lines.append(f"  私域人设：{str(summary)[:100]}")
+    elif chat := persona.get("chat_behavior", {}).get("private_style"):
+        lines.append(f"  私域风格：{str(chat)[:100]}")
+
+    if _is_female(persona) and (cfg.get("female") or {}).get("outfit_catalog", True):
+        outfit = infer_outfit(persona, user_message, scene_hint=scene_hint)
+        oline = f"  穿着：{outfit['label']} — {outfit['desc'][:70]}"
+        if outfit.get("underwear"):
+            oline += f"；{outfit['underwear']}"
+        lines.append(oline)
+
+    if arousal_summary and float(arousal_summary.get("level", 0)) >= 15:
+        lines.append(
+            f"  发情：{arousal_summary.get('level', 0):.0f}/100（{arousal_summary.get('label', '')}）"
+        )
+
+    if (cfg.get("female") or {}).get("organ_detail", True) and _is_female(persona):
+        organ = organ_status_text(persona, rel_summary)
+        if organ:
+            lines.append(f"  身体：{organ[:120]}")
+
+    memo = _character_memo(persona, cfg)
+    if memo:
+        lines.append(f"  {memo[:140]}")
+
+    return "\n".join(lines)
+
+
+def _scene_participant_fallback(
+    character_id: str,
+    persona: dict,
+    rel_summary: dict,
+    emo_summary: dict,
+) -> str:
+    name = persona.get("name", character_id)
+    social = rel_summary.get("social_relation_label", "")
+    grade = rel_summary.get("affection_grade", "")
+    mood = emo_summary.get("primary_mood", "平静")
+    return (
+        f"▸ {character_id}（{name}）社会关系={social} "
+        f"好感={rel_summary.get('affection_score', rel_summary.get('love', 0))}·{grade} "
+        f"心情={mood}"
+    )

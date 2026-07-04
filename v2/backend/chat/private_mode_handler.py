@@ -88,7 +88,9 @@ async def handle_private_scene(
     llm_choice: dict | None,
     emit: EmitFn,
 ) -> None:
-    participants = detect_participants(user_message, state.persona_loader)
+    participants = detect_participants(
+        user_message, state.persona_loader, active_character_id=character_id,
+    )
     if character_id not in participants and character_id:
         participants = [character_id] + [p for p in participants if p != character_id]
 
@@ -96,6 +98,7 @@ async def handle_private_scene(
         user_message,
         llm_choice,
         participant_ids=participants or None,
+        active_character_id=character_id,
     )
     reply_id = f"scene_{uuid.uuid4().hex[:12]}"
     display = format_scene_display(result)

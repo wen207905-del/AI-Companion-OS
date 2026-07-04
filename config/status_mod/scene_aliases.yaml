@@ -1,0 +1,61 @@
+# 叙述模式 — 角色称呼/别名 → character_id（用于从场景文本识别在场者）
+# 匹配时不区分「我」；用户侧称呼见 user.yaml
+
+aliases:
+  ye_ruxue:
+    - 夜如雪
+    - 如雪
+    - 妈妈
+    - 妈
+    - 继母
+    - 婆婆
+    - 如雪姐
+  bai_rou:
+    - 白柔
+    - 老婆
+    - 妻子
+    - 媳妇
+    - 柔柔
+  wang_dahai:
+    - 王大海
+    - 大海
+    - 发小
+  liu_qingning:
+    - 柳青柠
+    - 青柠
+    - 学妹
+  mo_xiaoran:
+    - 墨小染
+    - 小染
+    - 表妹
+  gu_wanqing:
+    - 顾晚晴
+    - 晚晴
+    - 青梅竹马
+  xiao_ying:
+    - 小樱
+    - 樱
+  xingye_liuli:
+    - 星野琉璃
+    - 琉璃
+  su_nian:
+    - 苏念
+  lin_tangtang:
+    - 林糖糖
+    - 糖糖
+  hua_li:
+    - 花璃
+  shen_man:
+    - 沈曼
+    - 曼姐
+
+location_hints:
+  茶亭: ye_ruxue
+  中庭: ye_ruxue
+  厨房: bai_rou
+  烘焙: bai_rou
+  主卧: bai_rou
+  游戏间: ye_ruxue
+  3F: ye_ruxue
+  兄弟寝室: wang_dahai
+  东厢: wang_dahai
