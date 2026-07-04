@@ -5,6 +5,7 @@ from engine.world_clock import (
     TIMEZONE,
     format_clock,
     snapshot,
+    world_rules_block,
 )
 
 
@@ -26,3 +27,10 @@ def test_format_clock_24h():
     # 2024-06-28 14:30:00 CST ≈ 1719562200 (approximate - use fixed ts from snapshot)
     s = snapshot(1719562200.0)
     assert format_clock(1719562200.0) == s["clock"]
+
+
+def test_world_rules_block_includes_no_underwear_rule():
+    block = world_rules_block()
+    assert "无日常内衣" in block
+    assert "胸罩" in block
+    assert "情趣" in block

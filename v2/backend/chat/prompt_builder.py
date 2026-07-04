@@ -6,7 +6,7 @@ from typing import Any
 from chat.style_reference_loader import style_reference_block
 from config import CONTENT_MODE, CONFIG_DIR, STYLE_REFERENCE_ENABLED, USER_NAME, USER_NICKNAME
 from chat.group_context import group_user_identity_block, group_user_scene_directive, visible_user_message_for_character
-from engine.world_clock import context_line as world_time_line
+from engine.world_clock import context_line as world_time_line, world_rules_block
 
 STAGE_BEHAVIOR: dict[int, str] = {
     1: "礼貌疏离，保持适当距离，不过于热情。",
@@ -378,6 +378,7 @@ class PromptBuilder:
         catchphrases = self._catchphrases_text()
         taboos = self._taboos_text()
 
+        world_rules = world_rules_block()
         lines = [
             f"你是{self._persona.get('name', base.get('name', '角色'))}。",
             world_time_line(),
@@ -388,6 +389,10 @@ class PromptBuilder:
         ]
         if catchphrases:
             lines.append(f"常用口头禅参考：{catchphrases}")
+
+        if world_rules:
+            lines.append("")
+            lines.append(world_rules)
 
         depth = self._persona_depth_text()
         if depth:
@@ -502,6 +507,7 @@ class PromptBuilder:
         depth = self._persona_depth_text()
         from app_state import state as app_state
 
+        world_rules = world_rules_block()
         lines = [
             f"你是{self._persona.get('name', '角色')}，正在群聊「{group_name}」中。",
             world_time_line(),
@@ -512,6 +518,9 @@ class PromptBuilder:
             f"性格：{self._personality_text()}",
             f"说话风格：{tone}。当前心情：{emo_summary.get('primary_mood', '平静')}。",
         ]
+        if world_rules:
+            lines.append("")
+            lines.append(world_rules)
         char_id = self._persona.get("id", "")
         if app_state.arousal_engine and char_id:
             ar = app_state.arousal_engine.get_summary(char_id)

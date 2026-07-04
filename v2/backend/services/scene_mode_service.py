@@ -9,6 +9,7 @@ from typing import Any
 
 from app_state import state
 from config import CONFIG_DIR, USER_NAME
+from engine.world_clock import world_rules_block
 from llm import router as llm_router
 from services.speaker_resolver import build_participant_labels, detect_participants
 from services.social_relation_service import enrich_relationship_summary, get_relation_meta
@@ -70,6 +71,9 @@ def build_scene_messages(scene_text: str, participant_ids: list[str] | None = No
         character_states="\n".join(_character_state_block(pid) for pid in participants)
         or "（未识别在场角色，请根据场景合理推断）",
     )
+    rules = world_rules_block()
+    if rules:
+        system += "\n\n" + rules
     user = f"{USER_NAME}描述的场景：\n{scene_text.strip()}\n\n请输出 JSON。"
     return [
         {"role": "system", "content": system},

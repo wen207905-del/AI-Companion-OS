@@ -3,8 +3,8 @@
 
 characters:
   ye_ruxue:
-    social_relation_type: mentor
-    social_relation_label: 成熟引导者
+    social_relation_type: stepmother
+    social_relation_label: 继母·恋子
     relationship_type: romance
     affection_score: 58
     affection_grade: 在意
