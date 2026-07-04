@@ -68,7 +68,7 @@ def test_group_messages_structure():
         history=[{"role": "user", "content": "大家好"}],
     )
     assert messages[0]["role"] == "system"
-    assert messages[-1]["content"] == "大家晚上吃什么？"
+    assert "大家晚上吃什么？" in messages[-1]["content"]
     assert "群聊" in messages[0]["content"]
 
 

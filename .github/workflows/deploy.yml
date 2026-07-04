@@ -1,0 +1,60 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build Docker images
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build V2 backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: v2/backend/Dockerfile
+          push: false
+          tags: ai-companion-os/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build V2 frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: v2/frontend
+          file: v2/frontend/Dockerfile
+          push: false
+          tags: ai-companion-os/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy (manual gate)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy placeholder
+        run: |
+          echo "Images built and tests passed."
+          echo "Wire your host deploy script here (SSH, kubectl, docker compose pull, etc.)."
+          echo "Backend tag: ai-companion-os/backend:${{ github.sha }}"
+          echo "Frontend tag: ai-companion-os/frontend:${{ github.sha }}"
