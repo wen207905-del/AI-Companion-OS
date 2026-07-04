@@ -400,6 +400,23 @@ async def send_proactive_message(
         candidate.score,
         candidate.activity,
     )
+
+    if state.emo_engine:
+        from services.emotion_tick import commit_emotion_delta, push_emotion_update
+        emo_delta = commit_emotion_delta(
+            candidate.character_id,
+            {"happy": 1.5, "miss_user": -2.0},
+            "proactive_share",
+            activity=candidate.activity,
+        )
+        if emo_delta:
+            emo = state.emo_engine.get_summary(candidate.character_id)
+            await push_emotion_update(
+                candidate.character_id,
+                emo_delta,
+                emo,
+                room=f"private:{candidate.character_id}",
+            )
     return True
 
 

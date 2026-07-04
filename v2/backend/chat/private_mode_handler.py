@@ -130,3 +130,14 @@ async def handle_private_scene(
         "timestamp": ts,
         "character_id": character_id,
     })
+
+    from services.emotion_tick import apply_scene_event_emotions, push_emotion_update
+    applied_map = apply_scene_event_emotions(result.get("events") or [])
+    for cid, emo_delta in applied_map.items():
+        emo = state.emo_engine.get_summary(cid) if state.emo_engine else {}
+        await push_emotion_update(
+            cid,
+            emo_delta,
+            emo,
+            room=f"private:{character_id}",
+        )

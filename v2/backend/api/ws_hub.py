@@ -37,5 +37,11 @@ class WsHub:
         for room in rooms:
             await self.send_room(room, data)
 
+    async def push_emotion_update(self, character_id: str, payload: dict) -> None:
+        await self.send_rooms(
+            [f"private:{character_id}", "global"],
+            payload,
+        )
+
 
 hub = WsHub()

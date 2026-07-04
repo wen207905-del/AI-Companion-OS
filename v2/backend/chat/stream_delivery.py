@@ -141,6 +141,15 @@ async def deliver_character_reply(
 
     char_id = ws_meta.get("character_id") or ws_meta.get("sender_id")
     if memory_scope == "private" and char_id:
+        from services.emotion_tick import apply_character_reply_emotion, push_emotion_update
+        emo_delta = apply_character_reply_emotion(char_id)
+        if emo_delta:
+            await push_emotion_update(
+                char_id,
+                emo_delta,
+                state.emo_engine.get_summary(char_id) if state.emo_engine else None,
+                room=room,
+            )
         await maybe_deliver_chat_photo(
             room,
             character_id=char_id,

@@ -331,6 +331,20 @@ function handleMessage(data, view) {
     return
   }
 
+  if (data.type === 'emotion_update') {
+    lastStatUpdate.set({
+      characterId: data.character_id,
+      relationship: null,
+      emotion: data.emotion,
+      growth: null,
+      arousal: null,
+      deltas: data.deltas || { emotion: data.emotion_delta || {} },
+      ts: Date.now(),
+    })
+    patchCharacterInList(data.character_id, null, data.emotion, null)
+    return
+  }
+
   if (data.type === 'group_created') {
     if (data.group) {
       applyGroupCreated(data.group)

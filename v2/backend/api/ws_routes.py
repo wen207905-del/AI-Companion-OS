@@ -20,6 +20,7 @@ from chat.private_mode_handler import (
     resolve_private_mode,
 )
 from chat.prompt_builder import PromptBuilder
+from services.emotion_tick import apply_user_message_emotion, push_emotion_update
 from services.mode_settings import get_user_mode, set_user_mode
 from services.social_relation_service import enrich_relationship_summary
 from chat.regenerate_service import prepare_group_regenerate, prepare_private_regenerate
@@ -202,21 +203,19 @@ async def private_chat(websocket: WebSocket, character_id: str):
             )
             event_bus.dispatch(event)
 
-            stat_payload = build_stat_update(
-                character_id,
-                rel_before,
-                state.rel_engine.get_summary(character_id),
-                emo_before,
-                state.emo_engine.get_summary(character_id),
-                growth_before,
-                state.growth_engine.get_profile(character_id)
-                if state.growth_engine
-                else None,
-                arousal_before,
-                state.arousal_engine.get_summary(character_id)
-                if state.arousal_engine
-                else None,
+            rel_enriched = enrich_relationship_summary(
+                state.db, character_id, state.rel_engine.get_summary(character_id),
             )
+            user_emo_delta = apply_user_message_emotion(
+                character_id, user_message, rel_enriched,
+            )
+            if user_emo_delta:
+                await push_emotion_update(
+                    character_id,
+                    user_emo_delta,
+                    state.emo_engine.get_summary(character_id),
+                    room=room,
+                )
 
             client_id = data.get("client_id")
             await emit({
@@ -241,6 +240,21 @@ async def private_chat(websocket: WebSocket, character_id: str):
                     user_message=user_message,
                     llm_choice=llm_choice,
                     emit=emit,
+                )
+                stat_payload = build_stat_update(
+                    character_id,
+                    rel_before,
+                    state.rel_engine.get_summary(character_id),
+                    emo_before,
+                    state.emo_engine.get_summary(character_id),
+                    growth_before,
+                    state.growth_engine.get_profile(character_id)
+                    if state.growth_engine
+                    else None,
+                    arousal_before,
+                    state.arousal_engine.get_summary(character_id)
+                    if state.arousal_engine
+                    else None,
                 )
                 await _emit_stat(room, stat_payload)
                 await emit({"type": "typing_end", "character_id": character_id})
@@ -279,6 +293,21 @@ async def private_chat(websocket: WebSocket, character_id: str):
                 structured_chat=True,
             )
 
+            stat_payload = build_stat_update(
+                character_id,
+                rel_before,
+                state.rel_engine.get_summary(character_id),
+                emo_before,
+                state.emo_engine.get_summary(character_id),
+                growth_before,
+                state.growth_engine.get_profile(character_id)
+                if state.growth_engine
+                else None,
+                arousal_before,
+                state.arousal_engine.get_summary(character_id)
+                if state.arousal_engine
+                else None,
+            )
             await _emit_stat(room, stat_payload)
 
             await emit({

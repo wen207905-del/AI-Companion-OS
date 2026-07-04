@@ -58,17 +58,17 @@
     && $lastStatUpdate.ts !== lastAppliedStatTs) {
     lastAppliedStatTs = $lastStatUpdate.ts
     const payload = $lastStatUpdate
-    fieldDeltas = { ...(payload.deltas?.relationship || {}) }
+    fieldDeltas = { ...(payload.deltas?.relationship || {}), ...(payload.deltas?.emotion || {}) }
     stageDelta = payload.deltas?.stage_name || null
     xpDelta = payload.deltas?.xp || null
-    moodDelta = payload.deltas?.mood || null
+    moodDelta = payload.deltas?.mood || payload.emotion?.primary_mood || null
     arousalDelta = payload.deltas?.arousal ?? null
     arousalLabelDelta = payload.deltas?.arousal_label || null
 
-    if (payload.relationship) {
+    if (payload.relationship || payload.emotion) {
       detail = {
         ...(detail || { persona: {} }),
-        relationship: payload.relationship,
+        relationship: payload.relationship || detail?.relationship,
         emotion: payload.emotion || detail?.emotion,
         growth: payload.growth || detail?.growth,
         arousal: payload.arousal || detail?.arousal,

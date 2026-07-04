@@ -14,6 +14,17 @@ export const REL_LABEL_CN = {
 
 export const AROUSAL_LABEL_CN = '发情度'
 
+export const EMO_LABEL_CN = {
+  happy: '开心',
+  lonely: '孤独',
+  miss_user: '想念',
+  calm: '平静',
+  excited: '兴奋',
+  sad: '伤心',
+  angry: '生气',
+  tired: '疲惫',
+}
+
 /**
  * @param {object} deltas stat_update.deltas
  * @returns {{ label: string, delta: number }[]}
@@ -24,6 +35,12 @@ export function formatStatDeltaChips(deltas = {}) {
   for (const [key, val] of Object.entries(rel)) {
     if (typeof val === 'number' && Math.abs(val) >= 0.05) {
       chips.push({ label: REL_LABEL_CN[key] || key, delta: val })
+    }
+  }
+  const emo = deltas.emotion || {}
+  for (const [key, val] of Object.entries(emo)) {
+    if (typeof val === 'number' && Math.abs(val) >= 0.05) {
+      chips.push({ label: EMO_LABEL_CN[key] || key, delta: val })
     }
   }
   if (typeof deltas.xp === 'number' && deltas.xp > 0) {

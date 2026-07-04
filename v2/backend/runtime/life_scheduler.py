@@ -1,4 +1,4 @@
-"""Background tick: absence emotion, relationship drift, activity-driven proactive shares."""
+"""Background tick: absence emotion, relationship drift, emotion tick, proactive shares."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import logging
 
 from app_state import state
 from engine.absence import hours_since_last_user_message
+from services.emotion_tick import run_emotion_tick
 from services.proactive_share_service import run_proactive_tick
 
 logger = logging.getLogger(__name__)
@@ -52,16 +53,13 @@ class LifeScheduler:
             rel = state.rel_engine.get_summary(character_id)
             love = float(rel.get("love") or 0)
 
-            state.emo_engine.apply_user_absence(character_id, hours, love=love)
-
             if love >= 50 and hours >= 6:
                 state.rel_engine.apply_effect(
                     character_id, "security", -min(3.0, hours * 0.15), "absence_tick"
                 )
                 state.rel_engine.save_snapshot(character_id, "absence_tick")
 
-            state.emo_engine.save_snapshot(character_id, "absence_tick")
-
+        await run_emotion_tick()
         await run_proactive_tick()
 
 

@@ -122,8 +122,25 @@ def init_db(conn):
             tired REAL DEFAULT 20, lonely REAL DEFAULT 15, excited REAL DEFAULT 10,
             embarrassed REAL DEFAULT 0, shy REAL DEFAULT 20, suspicious REAL DEFAULT 5,
             sad REAL DEFAULT 5, angry REAL DEFAULT 5, fearful REAL DEFAULT 5,
+            miss_user REAL DEFAULT 20, jealous REAL DEFAULT 0,
+            activity TEXT DEFAULT '', delta_json TEXT DEFAULT '',
             timestamp REAL NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS activity_emotion_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            character_id TEXT NOT NULL,
+            activity TEXT DEFAULT '',
+            happy REAL DEFAULT 50,
+            lonely REAL DEFAULT 15,
+            miss_user REAL DEFAULT 20,
+            primary_mood TEXT DEFAULT '平静',
+            delta_json TEXT DEFAULT '{}',
+            timestamp REAL NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_activity_emotion_char
+            ON activity_emotion_snapshots(character_id, timestamp DESC);
 
         CREATE TABLE IF NOT EXISTS group_chats (
             id TEXT PRIMARY KEY, name TEXT NOT NULL,
