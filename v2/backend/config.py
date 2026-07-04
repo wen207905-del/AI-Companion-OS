@@ -220,9 +220,14 @@ def init_db(conn):
             model TEXT NOT NULL,
             scene TEXT DEFAULT '',
             style TEXT DEFAULT '',
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'queued',
             meta TEXT DEFAULT '{}',
-            created_at REAL NOT NULL
+            created_at REAL NOT NULL,
+            updated_at REAL,
+            progress_text TEXT DEFAULT '',
+            trigger_type TEXT DEFAULT '',
+            attempt_count INTEGER DEFAULT 0,
+            error_message TEXT DEFAULT ''
         );
 
         CREATE INDEX IF NOT EXISTS idx_image_albums_char

@@ -8,6 +8,7 @@ import time
 from app_state import state
 from config import PERSONA_DIR, get_db, init_db
 from chat.message_service import ensure_message_schema
+from services.image_job_service import ensure_image_job_schema
 from engine.arousal_engine import ArousalEngine
 from engine.emotion_engine import EmotionEngine
 from engine.boundary_engine import BoundaryEngine
@@ -27,6 +28,7 @@ def init_all() -> None:
     state.db = get_db()
     init_db(state.db)
     ensure_message_schema(state.db)
+    ensure_image_job_schema(state.db)
 
     state.rel_engine = RelationshipEngine(state.db)
     state.emo_engine = EmotionEngine(state.db)

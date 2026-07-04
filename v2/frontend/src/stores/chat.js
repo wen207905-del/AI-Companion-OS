@@ -20,6 +20,7 @@ export const typingCharacters = writable([])
 export const isStreamingReply = writable(false)
 export const chatMode = writable('chat')
 export const dmListVersion = writable(0)
+export const imageJobs = writable({})
 
 let ws = null
 let reconnectTimer = null
@@ -462,12 +463,58 @@ function handleMessage(data, view) {
         name: (found?.name || data.character_id) + ' · 发送照片中',
       }]
     })
+    if (data.job_id) {
+      imageJobs.update(jobs => ({
+        ...jobs,
+        [data.job_id]: {
+          job_id: data.job_id,
+          character_id: data.character_id,
+          status: 'queued',
+          progress_text: '排队中',
+        },
+      }))
+    }
+    return
+  }
+
+  if (data.type === 'image_job_update') {
+    imageJobs.update(jobs => ({
+      ...jobs,
+      [data.job_id]: {
+        ...jobs[data.job_id],
+        ...data,
+      },
+    }))
+    const active = ['queued', 'generating', 'uploading', 'retrying'].includes(data.status)
+    if (active) {
+      typingCharacters.update(list => {
+        if (list.some(c => c.id === data.character_id)) return list
+        const charList = get(characters)
+        const found = charList.find(c => c.id === data.character_id)
+        const label = data.progress_text || '发送照片中'
+        return [...list, {
+          id: data.character_id,
+          name: (found?.name || data.character_name || data.character_id) + ` · ${label}`,
+        }]
+      })
+    } else {
+      typingCharacters.update(list => list.filter(c => c.id !== data.character_id))
+    }
     return
   }
 
   if (data.type === 'image_ready') {
     isWaitingReply.set(false)
     typingCharacters.update(list => list.filter(c => c.id !== data.character_id))
+    if (data.job_id) {
+      imageJobs.update(jobs => {
+        const next = { ...jobs }
+        if (next[data.job_id]) {
+          next[data.job_id] = { ...next[data.job_id], status: 'completed', url: data.url }
+        }
+        return next
+      })
+    }
     const charList = get(characters)
     const found = charList.find(c => c.id === data.character_id)
     updateSortedMessages(msgs => [...msgs, withNormalizedTimestamp({

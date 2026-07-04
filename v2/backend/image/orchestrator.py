@@ -8,6 +8,7 @@ from image.album_store import (
     create_pending_job,
     download_and_save,
     get_job,
+    refresh_job_fields,
     update_job_status,
 )
 from image.config import IMAGE_CONTENT_MODE, SILICONFLOW_API_KEY
@@ -82,6 +83,7 @@ async def _attempt_generate(
         route,
         seed=composed.get("identity_seed"),
     )
+    update_job_status(job_id, "uploading")
     local_url = await download_and_save(result["image_url"], character_id, job_id)
     update_job_status(
         job_id,
@@ -111,6 +113,7 @@ async def generate_character_image(
     extra: str = "",
     multi_characters: list[str] | None = None,
     priority: str = "quality",
+    existing_job_id: str | None = None,
 ) -> dict:
     if not SILICONFLOW_API_KEY:
         raise ImageEngineError("SILICONFLOW_API_KEY not configured — add it to .env")
@@ -143,19 +146,32 @@ async def generate_character_image(
             reference_path=(load_identity(character_id) or {}).get("reference_image_path"),
             priority=priority,
         )
-        job_id = create_pending_job(
-            character_id=character_id,
-            prompt=composed_preview["prompt"],
-            model=route_preview.model,
-            scene=scene,
-            style=composed_preview["style"],
-            meta={
-                "route_reason": route_preview.reason,
-                "mode": route_preview.mode,
-                "exposure": attempt_exposure,
-                "content_mode": IMAGE_CONTENT_MODE,
-            },
-        )
+        job_meta = {
+            "route_reason": route_preview.reason,
+            "mode": route_preview.mode,
+            "exposure": attempt_exposure,
+            "content_mode": IMAGE_CONTENT_MODE,
+        }
+        if existing_job_id:
+            job_id = existing_job_id
+            refresh_job_fields(
+                job_id,
+                prompt=composed_preview["prompt"],
+                model=route_preview.model,
+                scene=scene,
+                style=composed_preview["style"],
+                meta_patch=job_meta,
+            )
+            update_job_status(job_id, "generating")
+        else:
+            job_id = create_pending_job(
+                character_id=character_id,
+                prompt=composed_preview["prompt"],
+                model=route_preview.model,
+                scene=scene,
+                style=composed_preview["style"],
+                meta=job_meta,
+            )
 
         try:
             result, composed, used_exposure = await _attempt_generate(

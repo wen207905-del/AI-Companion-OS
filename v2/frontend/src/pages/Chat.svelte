@@ -10,11 +10,13 @@
     activeGroup,
     chatMode,
     setChatMode,
+    imageJobs,
   } from '../stores/chat.js'
   import { currentLlm, providers } from '../stores/llm.js'
   import { characters, groups, loadCharacterDetail, userProfile } from '../stores/characters.js'
   import { lastPrivateMsgTimestamp, lastStatUpdate } from '../stores/chat.js'
   import MessageBubble from '../components/MessageBubble.svelte'
+  import ImageJobProgress from '../components/ImageJobProgress.svelte'
   import SceneBubble from '../components/SceneBubble.svelte'
   import ChatInput from '../components/ChatInput.svelte'
   import LlmSelector from '../components/LlmSelector.svelte'
@@ -242,6 +244,13 @@
     dispatch('groupDeleted', e.detail)
   }
 
+  $: activeImageJobs = view === 'private' && characterId
+    ? Object.values($imageJobs).filter(j =>
+        j.character_id === characterId
+        && ['queued', 'generating', 'uploading', 'retrying', 'failed'].includes(j.status)
+      )
+    : []
+
   onDestroy(() => {
     if (charStatusTimer) clearTimeout(charStatusTimer)
   })
@@ -342,6 +351,10 @@
           on:regenerate={onRegenerateRequest}
         />
       {/if}
+    {/each}
+
+    {#each activeImageJobs as job (job.job_id)}
+      <ImageJobProgress {job} />
     {/each}
 
     {#if showWaitingRow && !$isStreamingReply}
