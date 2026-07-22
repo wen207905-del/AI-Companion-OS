@@ -15,7 +15,6 @@
 </script>
 
 <div class="scene-message">
-  <div class="scene-badge">叙述模式</div>
   {#if narration}
     <p class="scene-narration">{narration}</p>
   {/if}
@@ -51,14 +50,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-
-  .scene-badge {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #94a3b8;
   }
 
   .scene-narration {

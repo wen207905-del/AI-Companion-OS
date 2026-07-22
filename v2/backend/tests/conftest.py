@@ -17,10 +17,17 @@ def memory_db():
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
     init_db(conn)
-    return conn
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 @pytest.fixture
 def client():
     with TestClient(__import__("main").app) as test_client:
         yield test_client
+    from app_state import state
+    if state.db is not None:
+        state.db.close()
+        state.db = None

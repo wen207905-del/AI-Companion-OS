@@ -12,6 +12,7 @@ from config import USER_NAME
 PRIVATE_BRIDGE_MAX_AGE_SECONDS = 3 * 3600
 PRIVATE_BRIDGE_MESSAGE_LIMIT = 8
 PRIVATE_BRIDGE_SNIPPET_CHARS = 180
+PRIVATE_CONTINUITY_MAX_AGE_SECONDS = 3 * 3600
 
 
 def load_private_history(db_conn, character_id: str, limit: int = 20) -> list[dict[str, str]]:
@@ -213,3 +214,32 @@ def load_recent_private_bridge(
         f"3. 群内其他人默认不知道私聊细节，除非你主动提起或剧情上他们已在场",
     ])
     return "\n".join(lines)
+
+
+def load_recent_private_continuity_hint(
+    db_conn,
+    character_id: str,
+    *,
+    max_age_seconds: int = PRIVATE_CONTINUITY_MAX_AGE_SECONDS,
+) -> str:
+    """Return metadata-only continuity for group chat without private content."""
+    row = db_conn.execute(
+        """
+        SELECT timestamp
+        FROM private_messages
+        WHERE character_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+        """,
+        (character_id,),
+    ).fetchone()
+    if not row:
+        return ""
+    if time.time() - float(row["timestamp"]) > max_age_seconds:
+        return ""
+    return (
+        "【私聊连续性——仅供内部调整态度】\n"
+        f"你与{USER_NAME}近期单独聊过。你记得这段经历，当前关系与情绪已包含它的影响。\n"
+        "回到群里时，只让语气、距离感和情绪自然延续；不得主动提到私聊，"
+        "不得复述、暗示或确认任何私聊内容与约定。只有用户在本群明确公开的部分才可回应。"
+    )

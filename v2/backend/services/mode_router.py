@@ -17,8 +17,7 @@ def is_scene_input(text: str, participant_count: int = 0) -> bool:
     um = (text or "").strip()
     if not um:
         return False
-    if participant_count >= 2:
-        return True
+    # 仅提到多名角色不足以进入长篇场景（V4.2）；需明确场景线索
     if _SCENE_PATTERN.search(um):
         return True
     hits = sum(1 for m in _SCENE_MARKERS if m in um)

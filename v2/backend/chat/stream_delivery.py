@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable
 
 from app_state import state
 from engine.world_clock import now as world_now
 from api.ws_hub import hub
+from chat.group_reply_guard import GuardResult
 from chat.reply_service import generate_reply
 from config import LLM_STREAM
 from image.chat_photo import maybe_deliver_chat_photo, strip_reply_photo_tag
+
+logger = logging.getLogger("companion.stream")
 
 
 async def deliver_character_reply(
@@ -27,6 +31,7 @@ async def deliver_character_reply(
     present_members: list[str] | None = None,
     group_name: str | None = None,
     structured_chat: bool = False,
+    content_filter: Callable[[str], GuardResult] | None = None,
 ) -> str:
     """
     Generate a character reply and push over WebSocket to all clients in room.
@@ -41,8 +46,11 @@ async def deliver_character_reply(
             user_message = (msg.get("content") or "").strip()
             break
     chat_mode = "group" if memory_scope == "group" else "private"
+    # Guarded group output must be validated before anything reaches the room.
+    # Otherwise a blocked speaker leak or duplicate is already visible in deltas.
+    stream_reply = LLM_STREAM and content_filter is None
 
-    if LLM_STREAM:
+    if stream_reply:
         ts = world_now()
         await hub.send_room(room, {
             "type": "stream_start",
@@ -84,6 +92,20 @@ async def deliver_character_reply(
 
     photo_directive, reply_content = strip_reply_photo_tag(reply_content or "")
 
+    if content_filter and reply_content:
+        guarded = content_filter(reply_content)
+        if not guarded.ok:
+            logger.info(
+                "Group reply blocked (%s) for %s",
+                guarded.reason,
+                char_name,
+            )
+            reply_content = ""
+            action = {"type": "cancelled", "reason": guarded.reason}
+            inner_thought = ""
+        else:
+            reply_content = guarded.content
+
     ts = world_now()
     if reply_content:
         save_to_db(reply_id, reply_content, action, inner_thought, ts)
@@ -116,7 +138,7 @@ async def deliver_character_reply(
                 intensity=60.0,
             )
 
-    if LLM_STREAM:
+    if stream_reply:
         await hub.send_room(room, {
             "type": "stream_end",
             "id": reply_id,

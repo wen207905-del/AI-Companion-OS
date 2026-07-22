@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime
+from functools import lru_cache
 from zoneinfo import ZoneInfo
 
 import yaml
@@ -15,13 +16,17 @@ DEFAULT_LOCATION = "云栖里·许宅"
 _WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
 
 
-def _load_time_config() -> dict:
+@lru_cache(maxsize=1)
+def _load_worldview() -> dict:
     path = CONFIG_DIR / "worldview.yaml"
     if not path.exists():
         return {}
     with open(path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-    world = data.get("world") or {}
+        return yaml.safe_load(f) or {}
+
+
+def _load_time_config() -> dict:
+    world = _load_worldview().get("world") or {}
     return world.get("time") or {}
 
 
@@ -68,3 +73,27 @@ def snapshot(ts: float | None = None) -> dict:
 def context_line(ts: float | None = None) -> str:
     s = snapshot(ts)
     return f"【世界时间】{s['datetime']}（{s['weekday']}）· {s['location']}"
+
+
+def world_rules_block() -> str:
+    """Formatted world rules for LLM system prompts."""
+    section = _load_worldview().get("world_rules") or {}
+    items = section.get("items") or []
+    if not items:
+        return ""
+
+    lines = ["【世界规则——叙事须一致，角色默认知晓】"]
+    if desc := section.get("description"):
+        lines.append(str(desc).strip())
+
+    for idx, item in enumerate(items, 1):
+        title = item.get("title") or item.get("id") or f"规则{idx}"
+        rule = str(item.get("rule") or "").strip()
+        if not rule:
+            continue
+        lines.append(f"{idx}. {title}：{rule}")
+        notes = item.get("narrative") or []
+        for note in notes[:4]:
+            lines.append(f"   - {note}")
+
+    return "\n".join(lines) if len(lines) > 1 else ""

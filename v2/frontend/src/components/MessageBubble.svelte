@@ -369,10 +369,6 @@
     font-weight: 500;
   }
 
-  .stream-cursor {
-    display: none;
-  }
-
   .action-text {
     display: block;
     font-style: italic;

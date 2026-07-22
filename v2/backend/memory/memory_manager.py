@@ -168,6 +168,70 @@ class MemoryManager:
     ) -> list[str]:
         return self.recall(character_id, "", limit=limit, scope=scope, scope_id=scope_id)
 
+    def recall_for_private_prompt(
+        self,
+        character_id: str,
+        query: str,
+        *,
+        limit: int = 5,
+    ) -> list[str]:
+        """Recall private memories plus group events this character witnessed.
+
+        Group records stay group-scoped in storage. Private chat may remember
+        them because the character was present, without duplicating records.
+        """
+        cur = self.db.execute(
+            """
+            SELECT content, role, scope, timestamp, intensity
+            FROM character_memories
+            WHERE character_id = ?
+              AND (
+                (scope = 'private' AND scope_id IS NULL)
+                OR (scope = 'group' AND scope_id IS NOT NULL)
+              )
+            ORDER BY timestamp DESC
+            LIMIT 250
+            """,
+            (character_id,),
+        )
+        rows = cur.fetchall()
+        if not rows:
+            return []
+
+        terms = _query_terms(query)
+        now = time.time()
+        scored: list[tuple[float, str, str]] = []
+        for row in rows:
+            content = (row["content"] or "").strip()
+            if not content:
+                continue
+            role = row["role"] or "user"
+            if content.startswith("[群聊"):
+                formatted = content
+            else:
+                prefix = USER_NAME if role == "user" else "我"
+                formatted = f"{prefix}：{content}"
+
+            score = sum(1.0 for term in terms if term and term in content)
+            age_hours = max(0, (now - float(row["timestamp"])) / 3600)
+            score += max(0, 4.0 - age_hours * 0.15)
+            score += float(row["intensity"] or 50) / 100.0 * 0.5
+            if row["scope"] == "private":
+                score += 0.4
+            scored.append((score, formatted, content))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        seen: set[str] = set()
+        results: list[str] = []
+        for _, formatted, raw in scored:
+            if raw in seen:
+                continue
+            seen.add(raw)
+            results.append(formatted)
+            if len(results) >= limit:
+                break
+        return results
+
     def recall_for_group_prompt(
         self,
         character_id: str,
@@ -176,20 +240,34 @@ class MemoryManager:
         *,
         limit: int = 6,
     ) -> list[str]:
-        """Merge group-scoped and private personal memories for group chat prompts."""
-        cur = self.db.execute(
-            """
-            SELECT content, role, scope, timestamp, intensity
-            FROM character_memories
-            WHERE character_id = ?
+        """Recall group-visible memories for group chat prompts.
+
+        Private memories are excluded unless GROUP_PRIVATE_MEMORY_IN_PROMPT is on.
+        """
+        from config import GROUP_PRIVATE_MEMORY_IN_PROMPT
+
+        if GROUP_PRIVATE_MEMORY_IN_PROMPT:
+            where = """
               AND (
                 (scope = 'group' AND scope_id = ?)
                 OR (scope = 'private' AND scope_id IS NULL)
               )
+            """
+            params: tuple = (character_id, group_id)
+        else:
+            where = "AND scope = 'group' AND scope_id = ?"
+            params = (character_id, group_id)
+
+        cur = self.db.execute(
+            f"""
+            SELECT content, role, scope, timestamp, intensity
+            FROM character_memories
+            WHERE character_id = ?
+            {where}
             ORDER BY timestamp DESC
             LIMIT 100
             """,
-            (character_id, group_id),
+            params,
         )
         rows = cur.fetchall()
         if not rows:

@@ -49,12 +49,14 @@ def infer_outfit(persona: dict, user_message: str = "", scene_hint: str = "") ->
 
     intimate = persona.get("intimate_state") or {}
     lewd = float(intimate.get("lewdness") or 30)
-    if lewd >= 60:
-        underwear = "情趣蕾丝内衣（可能未穿齐）"
-    elif lewd >= 35:
-        underwear = "舒适蕾丝内衣"
+    # 世界规则：日常不穿胸罩/内裤；情趣款除外
+    if any(k in text for k in ("情趣", "蕾丝内衣", "吊带袜", "开档", "束缚", "角色扮演")):
+        if lewd >= 60:
+            underwear = "情趣蕾丝内搭（刻意穿着）"
+        else:
+            underwear = "情趣内衣（场景指定）"
     else:
-        underwear = "日常内衣"
+        underwear = "无日常内衣（本世界常态，外衣/睡袍直接贴身）"
 
     return {
         "label": matched.get("label", "日常"),

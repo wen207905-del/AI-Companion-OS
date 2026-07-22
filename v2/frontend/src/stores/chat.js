@@ -762,10 +762,7 @@ export function sendMessage(content) {
     llm: getCurrentLlmPayload(),
     client_id: clientId,
   }
-  const mode = get(chatMode)
-  if (mode === 'scene') {
-    payload.mode = 'scene'
-  }
+  // V4.2：不再发送持久化聊天/叙述模式；场景由服务端按本轮内容判断
 
   ws.send(JSON.stringify(payload))
 }

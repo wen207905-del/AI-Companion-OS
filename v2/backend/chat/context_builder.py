@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from app_state import state
-from chat.history_loader import load_recent_private_bridge
+from chat.history_loader import (
+    load_recent_private_bridge,
+    load_recent_private_continuity_hint,
+)
+from config import GROUP_PRIVATE_BRIDGE_ENABLED, GROUP_PRIVATE_CONTINUITY_ENABLED
 from memory.memory_manager import format_memories_block
 
 
@@ -15,9 +19,14 @@ def memory_block_for(
 ) -> str:
     if not state.memory_manager:
         return ""
-    memories = state.memory_manager.recall(
-        character_id, query, limit=5, scope=scope, scope_id=scope_id,
-    )
+    if scope == "private" and scope_id is None:
+        memories = state.memory_manager.recall_for_private_prompt(
+            character_id, query, limit=5,
+        )
+    else:
+        memories = state.memory_manager.recall(
+            character_id, query, limit=5, scope=scope, scope_id=scope_id,
+        )
     return format_memories_block(memories)
 
 
@@ -27,17 +36,21 @@ def memory_block_for_group(
     group_id: str,
 ) -> str:
     """
-    Group chat memory: merge group memories + private personal memories,
-    plus recent private message transcript for topic continuity.
+    Group chat memory: group-scoped memories by default.
+    Private verbatim bridge and private memory recall are behind feature flags.
     """
     parts: list[str] = []
 
-    bridge = ""
-    if state.db and state.persona_loader:
+    if GROUP_PRIVATE_BRIDGE_ENABLED and state.db and state.persona_loader:
         char_name = state.persona_loader.get_display_name(character_id)
         bridge = load_recent_private_bridge(state.db, character_id, char_name)
-    if bridge:
-        parts.append(bridge)
+        if bridge:
+            parts.append(bridge)
+
+    if GROUP_PRIVATE_CONTINUITY_ENABLED and state.db:
+        continuity = load_recent_private_continuity_hint(state.db, character_id)
+        if continuity:
+            parts.append(continuity)
 
     if state.memory_manager:
         merged = state.memory_manager.recall_for_group_prompt(

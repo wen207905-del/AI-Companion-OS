@@ -9,11 +9,22 @@ def test_health(client):
     res = client.get("/api/health")
     assert res.status_code == 200
     data = res.json()
-    assert data["status"] == "ok"
+    assert data["status"] in ("ok", "degraded")
     assert data["version"] == APP_VERSION
     assert "llm" in data
     assert "llm_stream" in data
     assert data["user"]["name"] == "许汉文"
+    assert "checks" in data
+    assert data["checks"]["database"]["ok"] is True
+    assert "group_flags" in data
+
+
+def test_health_root_alias(client):
+    res = client.get("/health")
+    assert res.status_code == 200
+    data = res.json()
+    assert "checks" in data
+    assert data["checks"]["database"]["ok"] is True
 
 
 def test_user_profile(client):

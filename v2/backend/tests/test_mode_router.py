@@ -1,10 +1,12 @@
-"""Tests for V4.1 mode router."""
+"""Tests for V4.1 / V4.2 mode router."""
 
 from services.mode_router import is_scene_input, resolve_mode
 
 
-def test_is_scene_input_multi_participant():
-    assert is_scene_input("你好", participant_count=2) is True
+def test_is_scene_input_multi_participant_alone_not_scene():
+    """V4.2: mentioning multiple characters alone must not force long scene mode."""
+    assert is_scene_input("你好", participant_count=2) is False
+    assert is_scene_input("@白柔 @王大海 你们好", participant_count=2) is False
 
 
 def test_is_scene_input_scene_markers():
@@ -31,3 +33,4 @@ def test_resolve_mode_auto_scene():
 
 def test_resolve_mode_default_chat():
     assert resolve_mode("在吗", default="chat") == "chat"
+    assert resolve_mode("白柔和王大海在吗", participant_count=2, default="chat") == "chat"

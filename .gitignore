@@ -19,6 +19,8 @@ build/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+v2/backend/.coverage
 
 # Node
 node_modules/
@@ -31,6 +33,7 @@ data/*.db
 data/*.db-shm
 data/*.db-wal
 data/albums/
+data/backup/
 *.db
 *.sqlite
 

@@ -1,4 +1,4 @@
-"""Record group chat events into each present member's personal memory."""
+"""Record group chat events as group-scoped memories for present members."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def record_group_message_for_present(
     event_id: str | None = None,
     intensity: float = 55.0,
 ) -> None:
-    """Write the same group scene into every on-site character's memory (group + private)."""
+    """Write the same group scene into every on-site character's group memory."""
     mm = state.memory_manager
     if not mm or not group_id:
         return
@@ -55,15 +55,6 @@ def record_group_message_for_present(
             scope_id=group_id,
             event_id=event_id,
             intensity=intensity,
-        )
-        mm.store(
-            char_id,
-            snap,
-            role=role,
-            scope="private",
-            scope_id=None,
-            event_id=event_id,
-            intensity=intensity * 0.9,
         )
 
 

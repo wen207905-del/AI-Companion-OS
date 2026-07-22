@@ -20,8 +20,10 @@ def test_group_user_message_recorded_for_all_present(memory_db):
     for cid in ("bai_rou", "wang_dahai"):
         group_mem = mm.recall(cid, "晚上好", limit=3, scope="group", scope_id="grp_test")
         private_mem = mm.recall(cid, "晚上好", limit=3, scope="private")
+        private_prompt_mem = mm.recall_for_private_prompt(cid, "晚上好", limit=3)
         assert any("大家晚上好" in m for m in group_mem)
-        assert any("[群聊·测试群]" in m for m in private_mem)
+        assert not any("[群聊·测试群]" in m for m in private_mem)
+        assert any("[群聊·测试群]" in m for m in private_prompt_mem)
 
 
 def test_group_user_message_redacted_for_non_witness(memory_db):
@@ -71,7 +73,9 @@ def test_group_character_reply_witnessed_by_others(memory_db):
     bai_group = mm.recall("bai_rou", "晚饭", limit=3, scope="group", scope_id="grp_test")
     dahai_group = mm.recall("wang_dahai", "晚饭", limit=3, scope="group", scope_id="grp_test")
     dahai_private = mm.recall("wang_dahai", "晚饭", limit=3, scope="private")
+    dahai_private_prompt = mm.recall_for_private_prompt("wang_dahai", "晚饭", limit=3)
 
     assert any("白柔" in m and "晚饭" in m for m in bai_group)
     assert any("白柔" in m and "晚饭" in m for m in dahai_group)
-    assert any("[群聊·测试群]" in m for m in dahai_private)
+    assert not any("[群聊·测试群]" in m for m in dahai_private)
+    assert any("[群聊·测试群]" in m for m in dahai_private_prompt)

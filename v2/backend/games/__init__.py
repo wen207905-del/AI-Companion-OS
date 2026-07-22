@@ -1,0 +1,1 @@
+"""Server-authoritative group games."""

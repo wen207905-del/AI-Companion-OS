@@ -29,3 +29,13 @@ user_status:
 character_memo:
   enabled: true
   max_items: 8
+
+# 参考「骚妈升级APP」等 CG 文档的状态栏密度
+reference_style:
+  enabled: true
+  meter_bars: true          # 信任/亲密/依赖/警戒 百分比条
+  outfit_breakdown: true    # 上装/下装/内衣/鞋袜/饰品 分项
+  organ_by_part: true       # 嘴/胸/小穴… 分项（见 organ_detail.yaml + persona）
+  psychology_block: true    # 性癖 + 内心戏写作提示
+  pose_hint: true           # 当前姿势推断
+  speech_styles: true       # 注入 speech_styles.yaml 对白规则

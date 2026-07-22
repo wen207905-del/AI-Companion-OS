@@ -10,7 +10,7 @@ from app_state import state
 from chat.context_builder import boundary_hint_for, memory_block_for, status_block_for
 from chat.history_loader import load_private_history
 from chat.stream_delivery import deliver_character_reply
-from config import USER_NAME
+from config import ENABLE_MANUAL_MODE, USER_NAME
 from engine.world_clock import now as world_now
 from services.chat_service import build_chat_messages
 from services.mode_router import resolve_mode
@@ -25,7 +25,12 @@ EmitFn = Callable[[dict], Awaitable[None]]
 
 def resolve_private_mode(user_message: str, explicit_mode: str | None) -> str:
     participants = detect_participants(user_message, state.persona_loader)
-    default = get_user_mode(state.db) if state.db else "chat"
+    # 关闭手动模式后不再读取持久化 scene，避免刷新后持续长篇
+    if ENABLE_MANUAL_MODE and state.db:
+        default = get_user_mode(state.db)
+    else:
+        default = "chat"
+    # 旧客户端仍可在单条消息里显式传 mode；新客户端不再发送
     return resolve_mode(
         user_message,
         explicit_mode,
@@ -88,7 +93,9 @@ async def handle_private_scene(
     llm_choice: dict | None,
     emit: EmitFn,
 ) -> None:
-    participants = detect_participants(user_message, state.persona_loader)
+    participants = detect_participants(
+        user_message, state.persona_loader, active_character_id=character_id,
+    )
     if character_id not in participants and character_id:
         participants = [character_id] + [p for p in participants if p != character_id]
 
@@ -96,6 +103,7 @@ async def handle_private_scene(
         user_message,
         llm_choice,
         participant_ids=participants or None,
+        active_character_id=character_id,
     )
     reply_id = f"scene_{uuid.uuid4().hex[:12]}"
     display = format_scene_display(result)

@@ -13,7 +13,7 @@ def test_load_relationship_init_has_twelve():
     init_map = load_relationship_init()
     assert len(init_map) == 12
     assert init_map["wang_dahai"]["relationship_type"] == "brotherhood"
-    assert init_map["ye_ruxue"]["affection_score"] == 58
+    assert init_map["ye_ruxue"]["affection_score"] == 92
 
 
 def test_seed_not_all_eighty(memory_db):
@@ -48,16 +48,16 @@ def test_wang_dahai_friendship(memory_db):
     assert row["social_relation_label"] == "兄弟"
 
 
-def test_ye_ruxue_mentor_not_lover_stage(memory_db):
+def test_ye_ruxue_stepmother_high_affection(memory_db):
     engine = RelationshipEngine(memory_db)
     init = load_relationship_init()["ye_ruxue"]
     apply_init_to_engine(engine, "ye_ruxue", init)
     upsert_user_relation(memory_db, "ye_ruxue", init)
 
-    assert engine.states["ye_ruxue"].love == 58
+    assert engine.states["ye_ruxue"].love == 92
     row = memory_db.execute(
         "SELECT social_relation_label, affection_grade FROM character_user_relation WHERE character_id = ?",
         ("ye_ruxue",),
     ).fetchone()
-    assert row["social_relation_label"] == "成熟引导者"
-    assert row["affection_grade"] == "在意"
+    assert row["social_relation_label"] == "继母·恋子"
+    assert row["affection_grade"] == "深恋"
