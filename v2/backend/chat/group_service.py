@@ -12,6 +12,7 @@ from chat import llm_prefs
 from chat.context_builder import memory_block_for_group, status_block_for
 from chat.history_loader import load_group_history_for_character
 from chat.prompt_builder import PromptBuilder
+from chat.group_reply_guard import sanitize_group_reply
 from chat.reply_service import decide_character_chain
 from chat.stream_delivery import deliver_character_reply
 from llm import router as llm_router
@@ -120,6 +121,14 @@ def delete_group(db, group_id: str) -> bool:
     if not row:
         return False
     llm_prefs.ensure_table(db)
+    session_rows = db.execute(
+        "SELECT id FROM game_sessions WHERE group_id = ?", (group_id,),
+    ).fetchall()
+    session_ids = [r["id"] for r in session_rows]
+    for session_id in session_ids:
+        db.execute("DELETE FROM game_events WHERE session_id = ?", (session_id,))
+        db.execute("DELETE FROM game_participants WHERE session_id = ?", (session_id,))
+    db.execute("DELETE FROM game_sessions WHERE group_id = ?", (group_id,))
     db.execute("DELETE FROM group_chat_members WHERE chat_id = ?", (group_id,))
     db.execute("DELETE FROM group_messages WHERE chat_id = ?", (group_id,))
     db.execute(
@@ -243,6 +252,12 @@ async def maybe_run_character_chain(
         memory_scope_id=group_id,
         present_members=list(members),
         group_name=group_name,
+        content_filter=lambda text: sanitize_group_reply(
+            text,
+            own_name=persona.get("name", chain_char),
+            other_member_names=other_names,
+            prior_reply_texts=[content for _, _, content in recent_replies],
+        ),
     )
 
     await hub.send_room(room, {

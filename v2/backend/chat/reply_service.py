@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import re
-import random
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -13,10 +12,15 @@ from chat.group_context import is_scene_narration, scene_witness_ids
 from chat import llm_prefs
 from config import (
     CONTENT_MODE,
+    GROUP_MAX_REPLY_CHARS,
+    GROUP_MAX_TOKENS,
+    GROUP_SKIP_EXPAND,
+    GROUP_TEMPERATURE,
     LLM_INNER_THOUGHT,
     LLM_MAX_TOKENS,
     LLM_PRIVATE_MAX_TOKENS,
     LLM_STREAM,
+    PRIVATE_SKIP_EXPAND,
     USER_NAME,
     USER_NICKNAME,
 )
@@ -147,7 +151,7 @@ async def decide_responders(
     """Use aux LLM to pick which characters should reply in group chat."""
     choice = default_choice("aux")
     if not is_choice_available(choice):
-        return [m for m in members if random.random() <= 0.7]
+        return []
 
     char_profiles = []
     id_to_name = {}
@@ -206,7 +210,7 @@ async def decide_responders(
         )
         response = response.strip().lower()
     except Exception:
-        return [m for m in members if random.random() <= 0.7]
+        return []
 
     if response == "none" or not response:
         return []
@@ -313,6 +317,24 @@ def _reply_too_short(content: str) -> bool:
     return False
 
 
+def _truncate_group_reply(content: str, max_chars: int = GROUP_MAX_REPLY_CHARS) -> str:
+    """Deterministic truncate at sentence/newline boundary; no LLM rewrite."""
+    text = (content or "").strip()
+    if max_chars <= 0 or len(text) <= max_chars:
+        return text
+    cut = text[:max_chars]
+    best = -1
+    for sep in ("\n", "。", "！", "？", "；", ".", "!", "?"):
+        idx = cut.rfind(sep)
+        if idx > best and idx >= int(max_chars * 0.55):
+            best = idx
+    if best >= 0:
+        return cut[: best + 1].rstrip()
+    if max_chars == 1:
+        return "…"
+    return cut[: max_chars - 1].rstrip() + "…"
+
+
 async def _expand_short_reply(
     messages: list,
     content: str,
@@ -368,14 +390,16 @@ async def generate_reply(
 
     try:
         use_stream = LLM_STREAM and on_delta is not None
-        reply_temp = 0.92
+        is_group = chat_mode == "group"
+        reply_temp = GROUP_TEMPERATURE if is_group else 0.92
+        max_tokens = GROUP_MAX_TOKENS if is_group else LLM_PRIVATE_MAX_TOKENS
         if use_stream:
             parts: list[str] = []
             async for delta in llm_router.chat_completion_stream(
                 messages=messages,
                 choice=llm_choice,
                 temperature=reply_temp,
-                max_tokens=LLM_PRIVATE_MAX_TOKENS,
+                max_tokens=max_tokens,
             ):
                 parts.append(delta)
                 if on_delta is not None:
@@ -389,11 +413,20 @@ async def generate_reply(
                 messages=messages,
                 choice=llm_choice,
                 temperature=reply_temp,
-                max_tokens=LLM_PRIVATE_MAX_TOKENS,
+                max_tokens=max_tokens,
             )
             content = content.strip()
 
-        if CONTENT_MODE == "unrestricted" and _reply_too_short(content) and not structured_chat:
+        skip_expand = (
+            structured_chat
+            or (is_group and GROUP_SKIP_EXPAND)
+            or (not is_group and PRIVATE_SKIP_EXPAND)
+        )
+        if (
+            CONTENT_MODE == "unrestricted"
+            and _reply_too_short(content)
+            and not skip_expand
+        ):
             logger.info("Reply too short (%d chars), expanding once", len(content))
             expanded = await _expand_short_reply(messages, content, llm_choice)
             if expanded != content and use_stream and on_delta is not None:
@@ -404,6 +437,14 @@ async def generate_reply(
                     except Exception as ws_err:
                         logger.warning("WS stream expand delta failed: %s", ws_err)
             content = expanded
+
+        if is_group and GROUP_MAX_REPLY_CHARS > 0 and len(content) > GROUP_MAX_REPLY_CHARS:
+            logger.info(
+                "Group reply truncated from %d to <=%d chars",
+                len(content),
+                GROUP_MAX_REPLY_CHARS,
+            )
+            content = _truncate_group_reply(content)
 
         content = _strip_leaked_inner_blocks(content)
 

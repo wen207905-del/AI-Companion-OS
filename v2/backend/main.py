@@ -15,7 +15,7 @@ from api.image_routes import router as image_router
 from api.rest_routes import router as rest_router
 from api.ws_routes import router as ws_router
 from bootstrap import init_all
-from config import SERVER_HOST, SERVER_PORT
+from config import CORS_ALLOW_ORIGINS, SERVER_HOST, SERVER_PORT
 from image.config import IMAGE_OUTPUT_DIR
 from personality.photo_templates import template_dir
 from runtime.life_scheduler import get_scheduler
@@ -39,9 +39,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AI Companion OS V2.3", lifespan=lifespan)
+_cors_origins = CORS_ALLOW_ORIGINS or ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

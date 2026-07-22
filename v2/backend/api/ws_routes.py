@@ -11,6 +11,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from api.ws_hub import hub
 from app_state import state
 from chat.context_builder import boundary_hint_for, memory_block_for, memory_block_for_group, status_block_for
+from chat.group_reply_guard import sanitize_group_reply
+from chat.group_turn_orchestrator import plan_group_turn
 from chat.group_service import maybe_run_character_chain
 from chat.history_loader import load_group_history_for_character, load_private_history
 from chat.message_service import MessageError
@@ -31,7 +33,7 @@ from chat import llm_prefs
 from engine.world_clock import now as world_now, snapshot as world_snapshot
 from event.event_bus import event_bus
 from llm import router as llm_router
-from config import USER_NAME
+from config import GROUP_CHAIN_ENABLED, GROUP_MAX_RESPONDERS, USER_NAME
 
 router = APIRouter()
 
@@ -476,6 +478,11 @@ async def group_chat(websocket: WebSocket, group_id: str):
                     memory_scope_id=group_id,
                     present_members=list(members),
                     group_name=group_name,
+                    content_filter=lambda text: sanitize_group_reply(
+                        text,
+                        own_name=persona.get("name", char_id),
+                        other_member_names=other_names,
+                    ),
                 )
                 continue
 
@@ -540,18 +547,24 @@ async def group_chat(websocket: WebSocket, group_id: str):
             )
             event_bus.dispatch(event)
 
-            responders = await decide_responders(
-                user_message, list(members), state.persona_loader, state.emo_engine,
+            member_list = sorted(members)
+            candidates = await decide_responders(
+                user_message, member_list, state.persona_loader, state.emo_engine,
             )
-            responders = responders[:2]
+            turn_plan = plan_group_turn(
+                user_message,
+                member_list,
+                state.persona_loader,
+                candidate_responders=candidates,
+                default_max_responders=GROUP_MAX_RESPONDERS,
+            )
+            responders = turn_plan.responder_ids
 
             if not responders:
                 await emit({"type": "reply_batch_end", "group_id": group_id})
                 continue
 
             recent_replies: list[tuple[str, str, str]] = []
-            member_list = list(members)
-
             for char_id in responders:
                 p = state.persona_loader.get(char_id)
                 await emit({
@@ -604,6 +617,7 @@ async def group_chat(websocket: WebSocket, group_id: str):
                     )
 
                     reply_id = f"msg_{uuid.uuid4().hex[:12]}"
+                    own_name = persona.get("name", char_id)
 
                     def _save_group(rid, content, action, inner_thought, ts, _cid=char_id):
                         state.db.execute(
@@ -641,6 +655,14 @@ async def group_chat(websocket: WebSocket, group_id: str):
                         memory_scope_id=group_id,
                         present_members=list(members),
                         group_name=group_name,
+                        content_filter=lambda text, _on=own_name, _others=other_names, _prior=list(
+                            t for _, t in prior_in_batch
+                        ): sanitize_group_reply(
+                            text,
+                            own_name=_on,
+                            other_member_names=_others,
+                            prior_reply_texts=_prior,
+                        ),
                     )
 
                     snap = stat_snapshots_before.get(char_id)
@@ -675,15 +697,16 @@ async def group_chat(websocket: WebSocket, group_id: str):
                         "character_id": char_id,
                     })
 
-            await maybe_run_character_chain(
-                room,
-                group_id=group_id,
-                group_name=group_name,
-                members=members,
-                user_message=user_message,
-                recent_replies=recent_replies,
-                llm_choice=llm_choice,
-            )
+            if GROUP_CHAIN_ENABLED:
+                await maybe_run_character_chain(
+                    room,
+                    group_id=group_id,
+                    group_name=group_name,
+                    members=members,
+                    user_message=user_message,
+                    recent_replies=recent_replies,
+                    llm_choice=llm_choice,
+                )
 
             await emit({"type": "reply_batch_end", "group_id": group_id})
 

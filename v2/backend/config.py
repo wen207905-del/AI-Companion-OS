@@ -36,16 +36,41 @@ LLM_AUX_PROVIDER = os.getenv("LLM_AUX_PROVIDER", "deepseek").lower()
 LLM_AUX_MODEL = os.getenv("LLM_AUX_MODEL", "deepseek-chat")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.85"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2048"))
-LLM_PRIVATE_MAX_TOKENS = int(os.getenv("LLM_PRIVATE_MAX_TOKENS", "4096"))
-STYLE_REFERENCE_ENABLED = os.getenv("STYLE_REFERENCE_ENABLED", "true").lower() in ("1", "true", "yes")
+# 私聊自适应长度预算；明确场景展开可再单独提高
+LLM_PRIVATE_MAX_TOKENS = int(os.getenv("LLM_PRIVATE_MAX_TOKENS", "1536"))
+STYLE_REFERENCE_ENABLED = os.getenv("STYLE_REFERENCE_ENABLED", "false").lower() in ("1", "true", "yes")
 LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "120"))
 LLM_STREAM = os.getenv("LLM_STREAM", "true").lower() in ("1", "true", "yes")
 
 # standard=默认安全提示；unrestricted=私聊无审查角色扮演
 CONTENT_MODE = os.getenv("CONTENT_MODE", "unrestricted").lower()
 
-# 内心独白（第二次 LLM 调用；关闭可加快回复）
-LLM_INNER_THOUGHT = os.getenv("LLM_INNER_THOUGHT", "true").lower() in ("1", "true", "yes")
+# 内心独白（第二次 LLM 调用；默认关闭以降低延迟）
+LLM_INNER_THOUGHT = os.getenv("LLM_INNER_THOUGHT", "false").lower() in ("1", "true", "yes")
+
+# 用户可见聊天/叙述模式切换；关闭后忽略持久化模式，仅兼容旧客户端显式 mode 字段
+ENABLE_MANUAL_MODE = os.getenv("ENABLE_MANUAL_MODE", "false").lower() in ("1", "true", "yes")
+
+# V4.2 P0 群聊止血开关（默认偏止血开启，可用环境变量逐项回退）
+def _env_bool(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).lower() in ("1", "true", "yes")
+
+
+GROUP_SKIP_EXPAND = _env_bool("GROUP_SKIP_EXPAND", "true")
+PRIVATE_SKIP_EXPAND = _env_bool("PRIVATE_SKIP_EXPAND", "true")
+GROUP_MAX_RESPONDERS = max(1, int(os.getenv("GROUP_MAX_RESPONDERS", "1")))
+GROUP_CHAIN_ENABLED = _env_bool("GROUP_CHAIN_ENABLED", "false")
+GROUP_PRIVATE_BRIDGE_ENABLED = _env_bool("GROUP_PRIVATE_BRIDGE_ENABLED", "false")
+GROUP_PRIVATE_MEMORY_IN_PROMPT = _env_bool("GROUP_PRIVATE_MEMORY_IN_PROMPT", "false")
+# 只告诉角色“近期私聊发生过、延续当前态度”，绝不注入私聊正文
+GROUP_PRIVATE_CONTINUITY_ENABLED = _env_bool("GROUP_PRIVATE_CONTINUITY_ENABLED", "true")
+GROUP_MAX_REPLY_CHARS = int(os.getenv("GROUP_MAX_REPLY_CHARS", "450"))
+GROUP_MAX_TOKENS = int(os.getenv("GROUP_MAX_TOKENS", "700"))
+GROUP_TEMPERATURE = float(os.getenv("GROUP_TEMPERATURE", "0.75"))
+
+# CORS：非空时按逗号分隔白名单；空则保持 allow_origins=["*"]
+_cors_raw = (os.getenv("CORS_ALLOW_ORIGINS") or "").strip()
+CORS_ALLOW_ORIGINS = [o.strip() for o in _cors_raw.split(",") if o.strip()] if _cors_raw else []
 
 SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
@@ -298,5 +323,60 @@ def init_db(conn):
 
         CREATE INDEX IF NOT EXISTS idx_dm_msg_conv
             ON character_dm_messages(conversation_id, timestamp ASC);
+
+        CREATE TABLE IF NOT EXISTS game_sessions (
+            id TEXT PRIMARY KEY,
+            group_id TEXT NOT NULL,
+            game_type TEXT NOT NULL,
+            rules_version TEXT NOT NULL DEFAULT '1.0',
+            status TEXT NOT NULL DEFAULT 'running',
+            round_no INTEGER NOT NULL DEFAULT 1,
+            current_turn_index INTEGER NOT NULL DEFAULT 0,
+            state_version INTEGER NOT NULL DEFAULT 1,
+            settings_json TEXT NOT NULL DEFAULT '{}',
+            public_state_json TEXT NOT NULL DEFAULT '{}',
+            winner_json TEXT,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL,
+            finished_at REAL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_game_session_group
+            ON game_sessions(group_id, updated_at DESC);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_one_running_game_per_group
+            ON game_sessions(group_id) WHERE status = 'running';
+
+        CREATE TABLE IF NOT EXISTS game_participants (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            participant_type TEXT NOT NULL,
+            participant_ref_id TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            seat_no INTEGER NOT NULL,
+            score INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'active',
+            UNIQUE(session_id, participant_ref_id),
+            UNIQUE(session_id, seat_no)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_game_participant_session
+            ON game_participants(session_id, seat_no ASC);
+
+        CREATE TABLE IF NOT EXISTS game_events (
+            id TEXT PRIMARY KEY,
+            session_id TEXT NOT NULL,
+            sequence_no INTEGER NOT NULL,
+            actor_ref_id TEXT,
+            event_type TEXT NOT NULL,
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            state_version_after INTEGER NOT NULL,
+            idempotency_key TEXT,
+            created_at REAL NOT NULL,
+            UNIQUE(session_id, sequence_no),
+            UNIQUE(session_id, idempotency_key)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_game_event_session
+            ON game_events(session_id, sequence_no ASC);
     """)
     conn.commit()

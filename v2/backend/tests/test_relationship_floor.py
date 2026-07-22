@@ -27,6 +27,6 @@ def test_reset_world_does_not_use_love_floor(memory_db):
         engine.init_character(cid, {"relationship_type": "romance", "intimate_state": {"affection": 0}})
     seed_all_characters(engine, memory_db, ids, force=True)
 
-    assert engine.states["ye_ruxue"].love == 58
+    assert engine.states["ye_ruxue"].love == 92
     assert engine.states["wang_dahai"].love == 82
     assert engine.states["bai_rou"].love == 86

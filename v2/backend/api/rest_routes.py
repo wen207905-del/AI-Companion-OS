@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from app_state import state
@@ -26,8 +28,24 @@ from llm.router import choice_from_dict, is_choice_available
 from personality.body_experience import build_body_experiences
 from personality.photo_templates import get_photo_url, get_photo_template_meta
 from services.social_relation_service import enrich_relationship_summary
+from games.fate_dice import (
+    CATALOG_ENTRY,
+    GameError,
+    apply_action as apply_fate_dice_action,
+    create_session as create_fate_dice_session,
+    get_current_session as get_current_game_session,
+    get_session as get_game_session,
+    list_events as list_game_events,
+)
 
 router = APIRouter()
+
+
+def _raise_game_error(error: GameError) -> None:
+    raise HTTPException(
+        status_code=error.status_code,
+        detail={"code": error.code, "message": str(error)},
+    )
 
 
 def _rel_summary(character_id: str) -> dict:
@@ -37,22 +55,84 @@ def _rel_summary(character_id: str) -> dict:
     return enrich_relationship_summary(state.db, character_id, raw)
 
 
-@router.get("/api/health")
-def health():
+def _build_health_payload() -> dict:
+    """Shared health payload for /api/health and /health probes."""
+    from config import (
+        GROUP_CHAIN_ENABLED,
+        GROUP_MAX_RESPONDERS,
+        GROUP_PRIVATE_BRIDGE_ENABLED,
+        GROUP_PRIVATE_CONTINUITY_ENABLED,
+        GROUP_PRIVATE_MEMORY_IN_PROMPT,
+        GROUP_SKIP_EXPAND,
+        ENABLE_MANUAL_MODE,
+        LLM_INNER_THOUGHT,
+        PRIVATE_SKIP_EXPAND,
+        STYLE_REFERENCE_ENABLED,
+    )
+
+    checks: dict[str, Any] = {}
+    status = "ok"
+
+    db_ok = False
+    db_error = ""
+    try:
+        if state.db is None:
+            db_error = "db_not_initialized"
+        else:
+            state.db.execute("SELECT 1").fetchone()
+            db_ok = True
+    except Exception as exc:
+        db_error = str(exc) or type(exc).__name__
+    checks["database"] = {"ok": db_ok, "error": db_error or None}
+    if not db_ok:
+        status = "error"
+
+    llm_status = llm_router.get_status()
+    llm_available = bool((llm_status.get("main") or {}).get("available"))
+    checks["llm"] = {"ok": llm_available, "detail": llm_status}
+    if not llm_available and status == "ok":
+        status = "degraded"
+
     return {
-        "status": "ok",
+        "status": status,
         "version": APP_VERSION,
         "content_mode": CONTENT_MODE,
         "llm_stream": LLM_STREAM,
         "user": {"name": USER_NAME, "nickname": USER_NICKNAME},
-        "llm": llm_router.get_status(),
+        "llm": llm_status,
         "image": {
             "enabled": bool(SILICONFLOW_API_KEY),
             "provider": "siliconflow",
             "content_mode": IMAGE_CONTENT_MODE,
         },
         "world_time": world_snapshot(),
+        "checks": checks,
+        "group_flags": {
+            "skip_expand": GROUP_SKIP_EXPAND,
+            "max_responders": GROUP_MAX_RESPONDERS,
+            "chain_enabled": GROUP_CHAIN_ENABLED,
+            "private_bridge": GROUP_PRIVATE_BRIDGE_ENABLED,
+            "private_continuity": GROUP_PRIVATE_CONTINUITY_ENABLED,
+            "private_memory_in_prompt": GROUP_PRIVATE_MEMORY_IN_PROMPT,
+        },
+        "private_flags": {
+            "skip_expand": PRIVATE_SKIP_EXPAND,
+            "inner_thought": LLM_INNER_THOUGHT,
+            "style_reference": STYLE_REFERENCE_ENABLED,
+            "manual_mode": ENABLE_MANUAL_MODE,
+        },
     }
+
+
+@router.get("/api/health")
+def health():
+    return _build_health_payload()
+
+
+@router.get("/health")
+def health_root():
+    """Probe-friendly alias; avoids SPA catch-all returning HTML for /health."""
+    return _build_health_payload()
 
 
 @router.get("/api/world/time")
@@ -296,6 +376,80 @@ def api_delete_group(group_id: str, background_tasks: BackgroundTasks):
     return {"ok": True, "id": group_id}
 
 
+@router.get("/api/v4/game-catalog")
+def api_game_catalog():
+    return {"games": [CATALOG_ENTRY]}
+
+
+@router.post("/api/v4/groups/{group_id}/game-sessions")
+def api_create_game_session(group_id: str, body: dict):
+    game_type = (body.get("game_type") or "fate_dice").strip().lower()
+    if game_type not in {"fate_dice", "dice"}:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "unsupported_game", "message": "该游戏暂未开放"},
+        )
+    settings = body.get("settings") if isinstance(body.get("settings"), dict) else {}
+    total_rounds = settings.get("total_rounds", body.get("total_rounds", 3))
+    try:
+        return create_fate_dice_session(
+            state.db,
+            group_id,
+            state.persona_loader,
+            total_rounds=int(total_rounds),
+        )
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_rounds", "message": "总轮数必须是整数"},
+        )
+    except GameError as error:
+        _raise_game_error(error)
+
+
+@router.get("/api/v4/groups/{group_id}/game-sessions/current")
+def api_current_game_session(group_id: str):
+    if not get_group(state.db, group_id):
+        raise HTTPException(status_code=404, detail="group not found")
+    return {"session": get_current_game_session(state.db, group_id)}
+
+
+@router.get("/api/v4/game-sessions/{session_id}")
+def api_get_game_session(session_id: str):
+    try:
+        return get_game_session(state.db, session_id)
+    except GameError as error:
+        _raise_game_error(error)
+
+
+@router.get("/api/v4/game-sessions/{session_id}/events")
+def api_get_game_events(session_id: str):
+    try:
+        return {"events": list_game_events(state.db, session_id)}
+    except GameError as error:
+        _raise_game_error(error)
+
+
+@router.post("/api/v4/game-sessions/{session_id}/actions")
+def api_game_action(session_id: str, body: dict):
+    try:
+        return apply_fate_dice_action(
+            state.db,
+            session_id,
+            action_type=body.get("action_type") or body.get("action") or "",
+            actor_ref_id=body.get("actor_ref_id"),
+            expected_version=body.get("expected_version"),
+            idempotency_key=body.get("idempotency_key"),
+        )
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_version", "message": "状态版本格式不正确"},
+        )
+    except GameError as error:
+        _raise_game_error(error)
+
+
 @router.get("/api/dashboard")
 def dashboard():
     characters = []
@@ -329,18 +483,35 @@ def dashboard():
 @router.get("/api/v4/mode")
 def get_mode():
     from services.mode_settings import get_user_mode
-    return {"mode": get_user_mode(state.db)}
+    return {
+        "mode": get_user_mode(state.db),
+        "deprecated": True,
+        "manual_mode_enabled": __import__("config", fromlist=["ENABLE_MANUAL_MODE"]).ENABLE_MANUAL_MODE,
+        "message": "Mode API is deprecated; natural chat no longer uses persisted chat/scene mode.",
+    }
 
 
 @router.put("/api/v4/mode")
 def put_mode(body: dict):
+    from config import ENABLE_MANUAL_MODE
     from services.mode_settings import set_user_mode
+
     mode = set_user_mode(
         state.db,
         body.get("mode") or "chat",
         active_character_id=body.get("active_character_id"),
     )
-    return {"mode": mode}
+    return {
+        "mode": mode,
+        "deprecated": True,
+        "manual_mode_enabled": ENABLE_MANUAL_MODE,
+        "applied": ENABLE_MANUAL_MODE,
+        "message": (
+            "Mode saved for compatibility, but persisted mode is ignored while ENABLE_MANUAL_MODE=false."
+            if not ENABLE_MANUAL_MODE
+            else "Mode updated."
+        ),
+    }
 
 
 @router.post("/api/v4/chat")
